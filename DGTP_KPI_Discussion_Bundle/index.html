@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Design & Development of Selected e-Services | Time-Saving Strategy Meeting</title>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/figures.css"/>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo" style="font-size:18px;text-align:center;line-height:1.3;">Design &amp; Development of<br>Selected e-Services</div>
+  <div class="loader-sub">Time-Saving Strategy Meeting · Sint Maarten</div>
+  <div class="loader-track"><div class="loader-fill"></div></div>
+</div>
+
+<div id="scroll-progress"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-brand">
+    <div class="nav-logo-box">SXM</div>
+    <div class="nav-brand-text">
+      <div class="nav-title" style="font-size:11px;line-height:1.2;">e-Services &amp; Interoperability</div>
+      <div class="nav-sub">Time-Saving Strategy Meeting</div>
+    </div>
+  </div>
+  <div class="nav-center">
+    <ul class="nav-links">
+      <li><a href="#hero">Overview</a></li>
+      <li><a href="#agenda">Agenda</a></li>
+      <li><a href="#challenges">Challenges</a></li>
+      <li><a href="#principles">Principles</a></li>
+      <li><a href="#pipeline">CI/CD</a></li>
+      
+      
+      
+      <li><a href="#security">Security</a></li>
+      <li><a href="#kpis">Success</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#rubric">Review</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#playground">🎮 Playground</a></li>
+      <li><a href="#changelog">Feedback</a></li>
+    </ul>
+  </div>
+  <div class="nav-right" style="display:flex;align-items:center;gap:12px;">
+    <img src="assets/logo-esxm.png" alt="eSXM & NRPB" style="height:36px;object-fit:contain;opacity:0.9;"/>
+    <img src="assets/logo-orange.png" alt="Orange bd" style="height:28px;object-fit:contain;opacity:0.9;"/>
+    <div class="nav-badge"><span class="live-dot"></span>Strategy Meeting</div>
+  </div>
+</nav>
+
+<div id="page">
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="hero">
+  <!-- Floating particles canvas -->
+  <canvas id="hero-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.35;"></canvas>
+  <!-- Decorative orbs -->
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+  <div class="section-inner" style="position:relative;z-index:1;">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">
+          <div class="hero-eyebrow-line"></div>
+          Sint Maarten · Time-Saving Strategy Meeting
+        </div>
+        <h1 class="hero-title hero-title-anim">
+          <span class="hero-line-1">Design &amp; Development</span><br>
+          <span class="hero-line-2">of <span id="hero-typeword" class="hero-typeword">faster</span> e-Services</span>
+        </h1>
+        <p class="hero-subtitle hero-subtitle-anim" style="color:rgba(255,255,255,0.88);">via Multiple Channels including an Online Portal</p>
+        <p class="hero-desc">Implementation of an interoperability platform integrating <strong style="color:#90CAF9;">six key registries</strong> — delivered by the <strong style="color:#90CAF9;">Orange bd team</strong> for Sint Maarten government. Faster, secure, and citizen-centric. Powered exclusively by Microsoft Azure.</p>
+        <div class="hero-actions">
+          <a href="#agenda" class="btn-primary">View Agenda &rarr;</a>
+          <a href="#challenges" class="btn-secondary">See Challenges &amp; Solutions</a>
+        </div>
+        <div class="hero-stats">
+          <div><div class="hero-stat-value"><span data-count="6">0</span></div><div class="hero-stat-label">Key Registries Integrated</div></div>
+          <div><div class="hero-stat-value"><span data-count="30" data-suffix="%">0%</span>+</div><div class="hero-stat-label">Faster Delivery</div></div>
+          
+          <div><div class="hero-stat-value"><span data-count="80" data-suffix="%">0%</span>+</div><div class="hero-stat-label">Test Automation</div></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-ttl">Project Scope at a Glance</div>
+        <div class="kpi-grid">
+          <div class="kpi-item"><div class="kpi-val">Portal</div><div class="kpi-lbl">Online Citizen Portal</div></div>
+          <div class="kpi-item"><div class="kpi-val">6</div><div class="kpi-lbl">Registry Connections Built by DGTP</div></div>
+          <div class="kpi-item"><div class="kpi-val">Azure</div><div class="kpi-lbl">Sole Cloud Platform</div></div>
+          <div class="kpi-item"><div class="kpi-val">Daily</div><div class="kpi-lbl">Deploy Frequency</div></div>
+        </div>
+        <div style="margin-bottom:12px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;">Six Key Registries</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--azure);font-size:12px;font-weight:700;color:var(--navy-dark);">🏛️ Civil Registry</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--navy);font-size:12px;font-weight:700;color:var(--navy);">💼 Business Registry</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--green);font-size:12px;font-weight:700;color:var(--navy);">📍 Address Registry</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--amber);font-size:12px;font-weight:700;color:var(--navy);">🧾 TaxPayer Registry</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--gray-50);border-radius:6px;border-left:3px solid #6B4FA8;font-size:12px;font-weight:700;color:var(--navy);">📋 Business License Registry</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--gray-50);border-radius:6px;border-left:3px solid #C55A00;font-size:12px;font-weight:700;color:var(--navy);">🏠 Land Registry</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- AGENDA -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="agenda">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Meeting Agenda</div>
+      <h2 class="section-title">What We Cover in 60 Minutes</h2>
+      <p class="section-desc">Six agenda items — 45 minutes of presentation, 15 minutes for your questions. Click any item to expand the detail. Click any sub-point to open a full explanation.</p>
+    </div>
+    <div id="agenda-list" class="reveal"><!-- built by agenda.js --></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- CHALLENGES -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="challenges">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Problem Statement</div>
+      <h2 class="section-title">Traditional Government Delivery Challenges</h2>
+      <p class="section-desc">Six systemic barriers that slow government digital transformation — each addressed directly by the DGTP Azure delivery model. <strong>Click any challenge point to explore the impact and solution.</strong></p>
+    </div>
+    <div class="reveal" id="challenges-figure"><!-- built by challenges.js --></div>
+  </div>
+</section>
+
+<section id="principles">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Strategic Solution</div>
+      <h2 class="section-title">Nine Governing Principles</h2>
+      <p class="section-desc">Nine delivery commitments that govern how <strong>our team</strong> will execute this programme — each directly solving one or more of the traditional challenges shown above. The ninth principle puts AI at the heart of our delivery approach. <strong>Click any card for an animated flow.</strong></p>
+    </div>
+    <div class="principles-grid" id="principles-grid">
+      <div class="principle-card reveal reveal-delay-1" onclick="openPrincipleDetail(0)">
+        <div class="principle-icon">⬅️</div>
+        <div class="principle-title">Shift Left</div>
+        <div class="principle-desc">Security, architecture and compliance enforced at <strong>requirement stage</strong> via <span class="pa">Defender for DevOps + Azure Policy</span> CI gates. Solves: Regulatory Complexity, Legacy Integration.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-2" onclick="openPrincipleDetail(1)">
+        <div class="principle-icon">⚙️</div>
+        <div class="principle-title">Automate Everything</div>
+        <div class="principle-desc">Zero manual promotion between environments. <span class="pa">Azure Pipelines YAML</span> with automated approval gates. Solves: Manual Validation, Sequential Development.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-3" onclick="openPrincipleDetail(2)">
+        <div class="principle-icon">📐</div>
+        <div class="principle-title">Standardize Patterns</div>
+        <div class="principle-desc">API templates, Bicep blueprints, Helm libraries via <span class="pa">Azure API Management Developer Portal</span>. Solves: Fragmented Systems, Legacy Integration.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-4" onclick="openPrincipleDetail(3)">
+        <div class="principle-icon">♻️</div>
+        <div class="principle-title">Reuse Before Build</div>
+        <div class="principle-desc">Shared services built once, consumed by all registries: <span class="pa">Notifications, Identity (SSO), Document Generation, Search, Payment Service</span>. No per-registry duplication.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-1" style="border-top-color:var(--navy);" onclick="openPrincipleDetail(4)">
+        <div class="principle-icon">⚡</div>
+        <div class="principle-title">Parallel Execution</div>
+        <div class="principle-desc">Six concurrent delivery streams from Day 1 — <span class="pa">Core Platform, Integration, Frontend, Security, DevOps, Data</span> — all enabled by Azure API Management mock contracts from Sprint 2. No stream waits for another.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">
+          <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#E8F3FC;color:#0078D4;font-weight:700;font-family:var(--font-sans);">🏗️ Core Platform</span>
+          <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#E8ECF4;color:#003087;font-weight:700;font-family:var(--font-sans);">🔗 Integration</span>
+          <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#EEF4FC;color:#2B9BF4;font-weight:700;font-family:var(--font-sans);">🎨 Frontend</span>
+          <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#DFF6DD;color:#107C10;font-weight:700;font-family:var(--font-sans);">🛡️ Security</span>
+          <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#F3EFF9;color:#6B4FA8;font-weight:700;font-family:var(--font-sans);">⚙️ DevOps</span>
+          <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#FBF3EE;color:#C55A00;font-weight:700;font-family:var(--font-sans);">🗄️ Data</span>
+        </div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-2" style="border-top-color:var(--navy);" onclick="openPrincipleDetail(5)">
+        <div class="principle-icon">🔄</div>
+        <div class="principle-title">Incremental Delivery</div>
+        <div class="principle-desc">Bi-weekly sprint releases via <span class="pa">Azure Pipelines release gates</span> and feature flags in App Configuration. Citizens see progress fortnightly.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-3" style="border-top-color:var(--amber);" onclick="openPrincipleDetail(6)">
+        <div class="principle-icon">🏛️</div>
+        <div class="principle-title">Governance by Design</div>
+        <div class="principle-desc">Audit logs, compliance reports and change control automated via <span class="pa">Azure Policy + Defender for Cloud + Log Analytics</span>. Solves: Coordination, Compliance.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-4" style="border-top-color:var(--green);" onclick="openPrincipleDetail(7)">
+        <div class="principle-icon">🛡️</div>
+        <div class="principle-title">Zero-Trust Security</div>
+        <div class="principle-desc">Verify explicitly, assume breach, least privilege. <span class="pa">Entra ID PIM + Private Link + Confidential Computing</span>. Solves: Regulatory Complexity, Legacy Integration.</div>
+        <div class="principle-click-hint">▶ Click for full details</div>
+      </div>
+      <div class="principle-card reveal reveal-delay-1" style="border-top-color:#8A2BE2;grid-column:span 2;" onclick="openPrincipleDetail(8)">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div>
+            <div class="principle-icon">🤖</div>
+          </div>
+          <div style="flex:1;">
+            <div class="principle-title" style="color:#8A2BE2;">AI-Accelerated Delivery</div>
+            <div class="principle-desc">AI works at the core of every step — <span style="font-weight:700;color:#8A2BE2;">Claude CLI via OpenRouter</span>, GitHub Copilot, Azure OpenAI, and Azure AI Services assist developers, generate tests, review code, and predict problems. Every AI output has a <span style="font-weight:700;color:#C55A00;">human in the loop</span> before it can proceed. AI speeds up the work; humans remain accountable for every decision.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">
+              <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#F3EFF9;color:#8A2BE2;font-weight:700;font-family:var(--font-sans);">🤖 Claude CLI</span>
+              <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#F3EFF9;color:#8A2BE2;font-weight:700;font-family:var(--font-sans);">⚡ OpenRouter</span>
+              <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#F3EFF9;color:#8A2BE2;font-weight:700;font-family:var(--font-sans);">🧠 GitHub Copilot</span>
+              <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#F3EFF9;color:#8A2BE2;font-weight:700;font-family:var(--font-sans);">☁️ Azure OpenAI</span>
+              <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#FFF4CE;color:#C55A00;font-weight:700;font-family:var(--font-sans);">👤 Human-in-the-Loop</span>
+            </div>
+          </div>
+        </div>
+        <div class="principle-click-hint" style="margin-top:8px;">▶ Click to see the full AI delivery flow</div>
+      </div>
+    </div>
+
+    <!-- Connector callout: Challenges → Principles -->
+    <div style="margin-top:24px;padding:16px 20px;background:linear-gradient(90deg,var(--azure-pale),var(--off-white));border:1px solid rgba(0,120,212,0.25);border-radius:8px;border-left:4px solid var(--azure);display:flex;align-items:center;gap:16px;" class="reveal reveal-delay-4">
+      <div style="font-size:24px;">🔗</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px;">Challenges → Principles Mapping</div>
+        <div style="font-size:12px;color:var(--text-secondary);">Each of the six traditional delivery challenges above is directly addressed by one or more of these governing principles. Together they create a <strong>30–40% delivery acceleration</strong> — significantly compressing traditional 18–24 month delivery timelines.</div>
+      </div>
+      <a href="#challenges" style="flex-shrink:0;padding:8px 14px;background:var(--azure);color:white;border-radius:4px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">← View Challenges</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- CI/CD PIPELINE -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="pipeline">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Azure Pipelines</div>
+      <h2 class="section-title">Multi-Stage CI/CD Architecture</h2>
+      <p class="section-desc">Every stage defined in YAML, peer-reviewed in Azure Repos, creating an immutable audit record. Hover any element for a plain-English explanation — click for full details.</p>
+    </div>
+    <div class="reveal" id="pipeline-svg-container"><!-- built by pipeline.js --></div>
+  </div>
+</section>
+
+
+
+
+
+
+
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- MEASURES OF SUCCESS -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="kpis">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Measures of Success</div>
+      <h2 class="section-title">How We Know It Is Working</h2>
+      <p class="section-desc">Five measurable outcomes that define success for this programme. Every metric is tracked automatically — no manual reporting. Click any step in the flow to see what it measures and why it matters.</p>
+    </div>
+    <div class="reveal" id="kpi-flow-container"><!-- built by kpi.js --></div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- REVIEW RUBRIC -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="rubric">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Document Governance</div>
+      <h2 class="section-title">Review &amp; Sign-Off Rubric</h2>
+      <p class="section-desc">The roles listed are all part of the <strong>Orange bd delivery team</strong> presenting this strategy. The Application Integration Expert leads the presentation; the other roles (DevOps, Cloud Architect, Integration Expert, Development Team, Project Manager) are specialists within the same team who will execute the programme.</p>
+    </div>
+    <!-- Summary -->
+    <div class="rubric-summary reveal">
+      <div class="ring-wrap">
+        <svg id="rubric-ring" width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="48" fill="none" stroke="#E8ECEF" stroke-width="8"/>
+          <circle class="ring-fill" cx="55" cy="55" r="48" fill="none" stroke="#107C10" stroke-width="8"
+            stroke-linecap="round"
+            style="transform:rotate(-90deg);transform-origin:55px 55px;stroke-dasharray:301;stroke-dashoffset:301;transition:stroke-dashoffset 1s ease;"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="ring-pct">0%</div>
+          <div class="ring-sub">Approved</div>
+        </div>
+      </div>
+      <div class="rub-counts">
+        <div class="rub-count"><div class="rc-num" id="rc-pending" style="color:var(--amber);">12</div><div class="rc-lbl">Pending</div></div>
+        <div class="rub-count"><div class="rc-num" id="rc-review" style="color:var(--azure);">0</div><div class="rc-lbl">In Review</div></div>
+        <div class="rub-count"><div class="rc-num" id="rc-changes" style="color:var(--red);">0</div><div class="rc-lbl">Changes Req.</div></div>
+        <div class="rub-count"><div class="rc-num" id="rc-approved" style="color:var(--green);">0</div><div class="rc-lbl">Approved</div></div>
+      </div>
+      <div class="rub-actions">
+        <button onclick="approveAll()" class="btn-primary" style="font-size:13px;padding:10px 18px;">&#10003; Approve All</button>
+        <button onclick="resetRubric()" style="font-size:13px;padding:10px 18px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-family:var(--font-sans);font-weight:700;">&#8635; Reset</button>
+      </div>
+    </div>
+    <!-- Table -->
+    <div class="rubric-table-wrap reveal reveal-delay-2">
+      <table class="rub-table">
+        <thead>
+          <tr>
+            <th style="width:34px;">§</th>
+            <th>Presentation Section</th>
+            <th style="width:190px;">Responsible Role</th>
+            <th style="width:170px;">Review Type</th>
+            <th style="width:145px;">Status</th>
+            <th style="width:90px;">Sign-Off</th>
+          </tr>
+        </thead>
+        <tbody id="rub-tbody"><!-- Populated by app.js --></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);" class="reveal reveal-delay-3">
+      &#128161; Click any status badge to cycle: PENDING &#8594; IN REVIEW &#8594; CHANGES REQ. &#8594; APPROVED. Presented entirely by the Application Integration Expert — sign-off captured here for the meeting record.
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- FAQ -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="faq">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Frequently Asked Questions</div>
+      <h2 class="section-title">FAQ — Strategy &amp; Delivery</h2>
+      <p class="section-desc">Common questions from government stakeholders, technical teams, and oversight bodies. <span id="faq-lock-hint" style="color:var(--amber);font-weight:700;">🔒 Access restricted — click to unlock</span></p>
+    </div>
+
+    <!-- Lock gate — shown until authenticated -->
+    <div id="faq-gate" class="faq-gate reveal">
+      <div class="faq-gate-card">
+        <div class="faq-gate-icon">🔒</div>
+        <div class="faq-gate-title">FAQ Access</div>
+        <div class="faq-gate-sub">This section is restricted. Please enter the access credentials.</div>
+        <div id="faq-gate-error" class="faq-gate-error" style="display:none;">Incorrect username or password. Please try again.</div>
+        <div class="faq-gate-field">
+          <label class="faq-gate-label" for="faq-username">Username</label>
+          <input id="faq-username" class="faq-gate-input" type="text" autocomplete="username"
+            placeholder="Enter username" onkeydown="if(event.key==='Enter')document.getElementById('faq-password').focus()"/>
+        </div>
+        <div class="faq-gate-field">
+          <label class="faq-gate-label" for="faq-password">Password</label>
+          <div style="position:relative;">
+            <input id="faq-password" class="faq-gate-input" type="password" autocomplete="current-password"
+              placeholder="Enter password" onkeydown="if(event.key==='Enter')faqLogin()"/>
+            <button class="faq-eye-btn" id="faq-eye" onclick="toggleFaqPwd()" title="Show/hide password">👁</button>
+          </div>
+        </div>
+        <button class="faq-gate-btn" onclick="faqLogin()">Unlock FAQ →</button>
+        <div class="faq-gate-hint">Credentials available from the presenter</div>
+      </div>
+    </div>
+
+    <!-- FAQ content — hidden until authenticated -->
+    <div id="faq-list" class="reveal" style="display:none;"></div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- STRATEGY PLAYGROUND -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="playground" style="background:var(--gray-50);padding:48px 0;border-top:1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-header reveal" style="text-align:center;margin-bottom:0;">
+      <div class="section-tag">Interactive Strategy Builder</div>
+      <h2 class="section-title">Strategy Playground</h2>
+      <p class="section-desc" style="max-width:640px;margin:0 auto 28px;">
+        Drag principles onto pipeline stages and watch your KPI scores update live. See which combinations break, which depend on each other, and how your strategy stacks up.
+      </p>
+    </div>
+    <div id="playground-inner"><!-- built by playground.js --></div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- CUSTOMER FEEDBACK ADDRESSED -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section id="changelog">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-tag">Customer Feedback Addressed</div>
+      <h2 class="section-title">What We Fixed Based on Your Input</h2>
+      <p class="section-desc">Every change was made in direct response to stakeholder feedback. <span id="cl-lock-hint" style="color:var(--amber);font-weight:700;">🔒 Access restricted — click to unlock</span></p>
+    </div>
+
+    <!-- Lock gate -->
+    <div id="cl-gate" class="faq-gate reveal">
+      <div class="faq-gate-card">
+        <div class="faq-gate-icon">🔒</div>
+        <div class="faq-gate-title">Feedback Log Access</div>
+        <div class="faq-gate-sub">This section is restricted. Please enter the access credentials.</div>
+        <div id="cl-gate-error" class="faq-gate-error" style="display:none;">Incorrect username or password. Please try again.</div>
+        <div class="faq-gate-field">
+          <label class="faq-gate-label" for="cl-username">Username</label>
+          <input id="cl-username" class="faq-gate-input" type="text" autocomplete="username"
+            placeholder="Enter username" onkeydown="if(event.key==='Enter')document.getElementById('cl-password').focus()"/>
+        </div>
+        <div class="faq-gate-field">
+          <label class="faq-gate-label" for="cl-password">Password</label>
+          <div style="position:relative;">
+            <input id="cl-password" class="faq-gate-input" type="password" autocomplete="current-password"
+              placeholder="Enter password" onkeydown="if(event.key==='Enter')clLogin()"/>
+            <button class="faq-eye-btn" onclick="toggleClPwd()" title="Show/hide password">👁</button>
+          </div>
+        </div>
+        <button class="faq-gate-btn" onclick="clLogin()">Unlock Feedback Log →</button>
+        <div class="faq-gate-hint">Credentials available from the presenter</div>
+      </div>
+    </div>
+
+    <!-- Content — hidden until authenticated -->
+    <div id="changelog-list" class="reveal" style="display:none;"></div>
+  </div>
+</section>
+
+</div><!-- #page -->
+
+<!-- FOOTER -->
+<footer id="site-footer">
+  <div class="footer-brand">Sint Maarten DGTP · Azure Time-Saving Strategy v2.0</div>
+  <div>Built exclusively on Microsoft Azure · CONFIDENTIAL · Programme Management Office</div>
+  <div class="footer-tagline" style="font-style:italic;">Automated. Governed. Secure. Parallelized. Accelerated.</div>
+</footer>
+<script>
+function toggleLayer(layer) { layer.classList.toggle('open'); }
+</script>
+
+<!-- ── FLOATING GLOSSARY FAB ─────────────────────────────────────── -->
+<div id="glossary-fab-wrap">
+  <!-- The circular FAB button -->
+  <button id="glossary-fab" onclick="toggleGlossary()" aria-label="Open Key Terms & Abbreviations" title="Key Terms & Abbreviations">
+    <span class="fab-icon" id="fab-icon">📖</span>
+    <span class="fab-label">Terms</span>
+  </button>
+  <!-- The expandable glossary card -->
+  <div id="glossary-card" class="glossary-card glossary-collapsed">
+    <div class="gc-header">
+      <div class="gc-title">
+        <span>📖</span>
+        <span>Key Terms &amp; Abbreviations</span>
+      </div>
+      <button class="gc-close" onclick="toggleGlossary()" title="Minimise">✕</button>
+    </div>
+    <div class="gc-search-row">
+      <input id="gc-search" class="gc-search" type="text" placeholder="Search 62 terms…" oninput="filterGlossary(this.value)" autocomplete="off"/>
+    </div>
+    <div class="gc-body" id="gc-body"><!-- populated by legend.js --></div>
+    <div class="gc-footer" id="gc-footer">62 terms · <span style="opacity:0.7;">Ctrl+G to toggle</span></div>
+  </div>
+</div>
+
+
+<script src="js/figures.js"></script>
+<script src="js/core.js"></script>
+<script src="js/agenda.js"></script>
+<script src="js/challenges.js"></script>
+<script src="js/pipeline.js"></script>
+<script src="js/kpi.js"></script>
+<script src="js/app.js"></script>
+<script src="js/playground.js"></script>
+<script src="js/changelog.js"></script>
+<script src="js/faq.js"></script>
+<script src="js/legend.js"></script>
+
+<script>
+function toggleLayer(layer) { layer.classList.toggle('open'); }
+</script>
+
+
+<script>
+/* ── HERO TYPEWRITER ─────────────────────────────────────────────── */
+(function() {
+  const WORDS = [
+    'faster',
+    'smarter',
+    'citizen-first',
+    'AI-powered',
+    'secure',
+    'interoperable',
+    'cloud-native',
+    'automated',
+    'transparent',
+    'trusted',
+  ];
+  const el = document.getElementById('hero-typeword');
+  if (!el) return;
+
+  let wi = 0, ci = 0, deleting = false;
+
+  function type() {
+    const word = WORDS[wi];
+    if (!deleting) {
+      el.textContent = word.slice(0, ++ci);
+      if (ci === word.length) { deleting = true; setTimeout(type, 1800); return; }
+      setTimeout(type, 80 + Math.random() * 40);
+    } else {
+      el.textContent = word.slice(0, --ci);
+      if (ci === 0) { deleting = false; wi = (wi + 1) % WORDS.length; setTimeout(type, 300); return; }
+      setTimeout(type, 40 + Math.random() * 20);
+    }
+  }
+  setTimeout(type, 1600);
+})();
+
+/* ── HERO PARTICLE CANVAS ────────────────────────────────────────── */
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const N = 55;
+  for (let i = 0; i < N; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 1 + Math.random() * 2.5,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      alpha: 0.2 + Math.random() * 0.5,
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      // Move
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+      // Draw dot
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(144,202,249,${p.alpha})`;
+      ctx.fill();
+    });
+
+    // Draw connecting lines between nearby particles
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(144,202,249,${0.12 * (1 - dist/120)})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── INTERSECTION OBSERVER for agenda items ─────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.ag-item, .section-header').forEach(el => obs.observe(el));
+});
+</script>
+
+
+<script>
+/* ── FAQ ACCESS GATE ─────────────────────────────────────────────── */
+(function() {
+  // Simple obfuscation — not cryptographic, just prevents casual viewing
+  const _u = btoa('orange');
+  const _p = btoa('faq');
+
+  window.faqLogin = function() {
+    const u = document.getElementById('faq-username');
+    const p = document.getElementById('faq-password');
+    const err = document.getElementById('faq-gate-error');
+    if (!u || !p) return;
+
+    const uVal = u.value.trim().toLowerCase();
+    const pVal = p.value.trim().toLowerCase();
+
+    if (btoa(uVal) === _u && btoa(pVal) === _p) {
+      // Success — slide in the FAQ
+      const gate    = document.getElementById('faq-gate');
+      const faqList = document.getElementById('faq-list');
+      const hint    = document.getElementById('faq-lock-hint');
+
+      if (gate)    { gate.style.transition = 'opacity 0.3s'; gate.style.opacity = '0'; setTimeout(()=>{ gate.style.display='none'; }, 300); }
+      if (hint)    hint.innerHTML = '<span style="color:var(--green);font-weight:700;">🔓 FAQ unlocked</span>';
+      if (faqList) {
+        faqList.style.display = 'block';
+        faqList.classList.add('faq-unlocked');
+        // Trigger faq.js population if not already done
+        if (typeof buildFAQ === 'function') { faqList.innerHTML = ''; buildFAQ(); }
+        // Scroll to faq list
+        setTimeout(() => faqList.scrollIntoView({ behavior:'smooth', block:'start' }), 350);
+      }
+
+      // Play a short success tone
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      } catch(e) {}
+
+    } else {
+      // Failure — shake error message
+      if (err) {
+        err.style.display = 'block';
+        err.style.animation = 'none';
+        void err.offsetWidth; // reflow
+        err.style.animation = 'errShake 0.35s ease';
+      }
+      if (p) { p.value = ''; p.focus(); }
+
+      // Play a brief error buzz
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+      } catch(e) {}
+    }
+  };
+
+  window.toggleFaqPwd = function() {
+    const p = document.getElementById('faq-password');
+    if (!p) return;
+    p.type = p.type === 'password' ? 'text' : 'password';
+  };
+
+  // Auto-focus username when FAQ section scrolls into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const u = document.getElementById('faq-username');
+        const gate = document.getElementById('faq-gate');
+        if (u && gate && gate.style.display !== 'none') {
+          setTimeout(() => u.focus(), 300);
+        }
+        observer.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const faqSection = document.getElementById('faq');
+    if (faqSection) observer.observe(faqSection);
+  });
+})();
+</script>
+
+
+<script>
+/* ── CHANGELOG ACCESS GATE ───────────────────────────────────────── */
+(function() {
+  const _cu = btoa('orange');
+  const _cp = btoa('orange2244');
+
+  window.clLogin = function() {
+    const u = document.getElementById('cl-username');
+    const p = document.getElementById('cl-password');
+    const err = document.getElementById('cl-gate-error');
+    if (!u || !p) return;
+
+    if (btoa(u.value.trim().toLowerCase()) === _cu && btoa(p.value.trim()) === _cp) {
+      const gate = document.getElementById('cl-gate');
+      const list = document.getElementById('changelog-list');
+      const hint = document.getElementById('cl-lock-hint');
+      if (gate) { gate.style.transition='opacity 0.3s'; gate.style.opacity='0'; setTimeout(()=>gate.style.display='none',300); }
+      if (hint) hint.innerHTML='<span style="color:var(--green);font-weight:700;">🔓 Feedback log unlocked</span>';
+      if (list) {
+        list.style.display='block';
+        list.classList.add('faq-unlocked');
+        if (typeof buildChangelog==='function') buildChangelog();
+        setTimeout(()=>list.scrollIntoView({behavior:'smooth',block:'start'}),350);
+      }
+      try {
+        const ctx=new(window.AudioContext||window.webkitAudioContext)();
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='sine';o.frequency.setValueAtTime(440,ctx.currentTime);
+        o.frequency.linearRampToValueAtTime(880,ctx.currentTime+0.15);
+        g.gain.setValueAtTime(0.15,ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.35);
+        o.start(ctx.currentTime);o.stop(ctx.currentTime+0.4);
+      } catch(e){}
+    } else {
+      if (err) { err.style.display='block'; err.style.animation='none'; void err.offsetWidth; err.style.animation='errShake 0.35s ease'; }
+      if (p) { p.value=''; p.focus(); }
+      try {
+        const ctx=new(window.AudioContext||window.webkitAudioContext)();
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='square';o.frequency.setValueAtTime(220,ctx.currentTime);
+        g.gain.setValueAtTime(0.12,ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+        o.start(ctx.currentTime);o.stop(ctx.currentTime+0.3);
+      } catch(e){}
+    }
+  };
+
+  window.toggleClPwd = function() {
+    const p=document.getElementById('cl-password');
+    if(p) p.type=p.type==='password'?'text':'password';
+  };
+
+  // Also prevent buildChangelog from auto-running on DOM load
+})();
+</script>
+
+<script>/* DGTP: password gates removed */(function(){function rv(g,l,fn){var gg=document.getElementById(g);if(gg)gg.style.display='none';var ll=document.getElementById(l);if(ll){ll.style.display='block';ll.classList.add('faq-unlocked');}if(typeof window[fn]==='function'){try{window[fn]();}catch(e){}}}
+function run(){rv('faq-gate','faq-list','buildFAQ');rv('cl-gate','changelog-list','buildChangelog');}
+if(document.readyState!=='loading')run();document.addEventListener('DOMContentLoaded',run);window.addEventListener('load',run);})();</script>
+</body>
+</html>

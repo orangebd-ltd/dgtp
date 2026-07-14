@@ -1,0 +1,2889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DGTP Sint Maarten — Azure Cloud Architecture · Part 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+:root{
+  --ink:#e8e4dc;--ink2:rgba(232,228,220,.6);--ink3:rgba(232,228,220,.3);--ink4:rgba(232,228,220,.14);
+  --bg:#0c1520;--bg2:#0f1b2a;--bg3:rgba(255,255,255,.04);
+  --teal:#22c792;--coral:#e8533a;--violet:#9b87f5;--amber:#f5a623;--blue:#60a5fa;--rose:#f87171;
+  --plan-a:#22c792;--plan-b:#60a5fa;--plan-c:#9b87f5;
+  --serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:9px;--r2:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;overflow-x:hidden;}
+
+/* ── scrollable slides ── */
+.slide{min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;padding:56px 0 0;}
+.slide::before{content:'';position:absolute;inset:0;background:inherit;z-index:-1;}
+.si{padding:24px 2.8rem 32px;flex:1;display:flex;flex-direction:column;max-width:1200px;width:100%;margin:0 auto;}
+
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;gap:0;
+  background:rgba(12,21,32,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:0 2.8rem;height:52px;}
+nav .ntitle{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);margin-right:auto;}
+.navbtn{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;
+  padding:6px 12px;border-radius:4px;border:none;background:none;color:var(--ink3);cursor:pointer;
+  transition:color .15s,background .15s;white-space:nowrap;}
+.navbtn:hover,.navbtn.on{background:rgba(255,255,255,.07);color:var(--ink);}
+.navsep{width:1px;height:20px;background:rgba(255,255,255,.08);flex-shrink:0;}
+
+/* typography */
+.eyebrow{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink3);margin-bottom:.6rem;}
+h1{font-family:var(--serif);font-size:clamp(2.2rem,4vw,3.6rem);line-height:1.05;color:var(--ink);}
+h2{font-family:var(--serif);font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.1;color:var(--ink);}
+h3{font-family:var(--serif);font-size:1.1rem;line-height:1.2;color:var(--ink);}
+.lead{font-size:.92rem;color:var(--ink2);line-height:1.75;max-width:720px;}
+.rule{width:40px;height:2px;border-radius:2px;margin:10px 0 14px;}
+.stag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;border:1px solid;margin-bottom:.7rem;}
+.stag-teal{background:rgba(34,199,146,.1);border-color:rgba(34,199,146,.35);color:var(--teal);}
+.stag-violet{background:rgba(155,135,245,.1);border-color:rgba(155,135,245,.35);color:var(--violet);}
+.stag-blue{background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.35);color:var(--blue);}
+
+/* ── plan comparison cards ── */
+.plans{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:1.2rem;}
+.plan{border-radius:12px;border:1.5px solid;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s;}
+.plan:hover{transform:translateY(-2px);}
+.plan-head{padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07);}
+.plan-letter{font-family:var(--mono);font-size:2.2rem;font-weight:500;line-height:1;margin-bottom:4px;}
+.plan-name{font-family:var(--serif);font-size:1.15rem;color:var(--ink);}
+.plan-sub{font-family:var(--mono);font-size:.6rem;color:var(--ink3);margin-top:2px;}
+.plan-body{padding:14px 18px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.plan-desc{font-size:.82rem;color:var(--ink2);line-height:1.65;}
+.plan-verdict{font-family:var(--mono);font-size:.62rem;border-radius:5px;padding:6px 10px;margin-top:4px;}
+
+/* plan A */
+.plan-a{border-color:rgba(34,199,146,.3);background:rgba(34,199,146,.03);}
+.plan-a .plan-letter{color:var(--plan-a);}
+.plan-a .plan-verdict{background:rgba(34,199,146,.08);color:var(--plan-a);}
+/* plan B */
+.plan-b{border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.03);}
+.plan-b .plan-letter{color:var(--plan-b);}
+.plan-b .plan-verdict{background:rgba(96,165,250,.08);color:var(--plan-b);}
+/* plan C */
+.plan-c{border-color:rgba(155,135,245,.3);background:rgba(155,135,245,.03);}
+.plan-c .plan-letter{color:var(--plan-c);}
+.plan-c .plan-verdict{background:rgba(155,135,245,.08);color:var(--plan-c);}
+
+/* ── layer stack ── */
+.lstack{display:flex;flex-direction:column;gap:4px;margin-top:1rem;}
+.layer{border-radius:8px;border:1px solid rgba(255,255,255,.08);overflow:hidden;}
+.layer-head{display:grid;grid-template-columns:42px 1fr auto;align-items:center;padding:10px 14px;cursor:pointer;transition:background .15s;}
+.layer-head:hover{background:rgba(255,255,255,.03);}
+.layer.open .layer-head{background:var(--lbg);}
+.layer-num{font-family:var(--mono);font-size:.6rem;color:var(--ink3);}
+.layer.open .layer-num{color:var(--lc);}
+.layer-title{font-family:var(--serif);font-size:.95rem;color:var(--ink);}
+.layer-arr{font-family:var(--mono);font-size:.65rem;color:var(--ink3);transition:transform .2s;}
+.layer.open .layer-arr{transform:rotate(90deg);color:var(--lc);}
+.layer-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1);}
+.layer.open .layer-body{max-height:600px;}
+.layer-inner{padding:0 14px 14px 56px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+/* plan cells inside layer */
+.lc-cell{border-radius:6px;padding:10px 12px;border:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.15);}
+.lc-plan{font-family:var(--mono);font-size:.52rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.lc-plan-a{color:var(--plan-a);}
+.lc-plan-b{color:var(--plan-b);}
+.lc-plan-c{color:var(--plan-c);}
+.lc-component{font-family:var(--mono);font-size:.72rem;color:var(--ink);margin-bottom:3px;line-height:1.35;}
+.lc-note{font-size:.7rem;color:var(--ink2);line-height:1.5;}
+.lc-locked{font-family:var(--mono);font-size:.58rem;color:var(--rose);margin-top:4px;}
+.lc-tradeoff{font-family:var(--mono);font-size:.58rem;color:var(--amber);margin-top:4px;line-height:1.4;}
+
+/* ── comparison table ── */
+.ctable{width:100%;border-collapse:collapse;margin-top:1rem;}
+.ctable th{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);padding:7px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1);}
+.ctable th.pa{color:var(--plan-a);}
+.ctable th.pb{color:var(--plan-b);}
+.ctable th.pc{color:var(--plan-c);}
+.ctable td{padding:8px 12px;font-size:.78rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+.ctable tr:hover td{background:rgba(255,255,255,.02);}
+.ctable td.cat{font-family:var(--mono);font-size:.65rem;color:var(--ink3);white-space:nowrap;}
+.ctable td.pa{color:var(--plan-a);font-family:var(--mono);font-size:.7rem;}
+.ctable td.pb{color:var(--plan-b);font-family:var(--mono);font-size:.7rem;}
+.ctable td.pc{color:var(--plan-c);font-family:var(--mono);font-size:.7rem;}
+.ctable .locked::before{content:'🔒 ';font-size:.65rem;}
+.badge-locked{display:inline-block;font-family:var(--mono);font-size:.52rem;padding:1px 6px;border-radius:3px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:var(--rose);margin-left:4px;}
+.badge-warn{display:inline-block;font-family:var(--mono);font-size:.52rem;padding:1px 6px;border-radius:3px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);color:var(--amber);margin-left:4px;}
+
+/* ── metrics row ── */
+.mrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.2rem;}
+.met{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;min-width:110px;}
+.mv{font-family:var(--serif);font-size:1.5rem;line-height:1;}
+.ml{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-top:2px;}
+.mv-teal{color:var(--teal);}
+.mv-blue{color:var(--blue);}
+.mv-violet{color:var(--violet);}
+.mv-amber{color:var(--amber);}
+.mv-rose{color:var(--rose);}
+
+/* ── slide backgrounds ── */
+#s0{background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(34,199,146,.07) 0%,transparent 65%),radial-gradient(ellipse 50% 40% at 20% 80%,rgba(155,135,245,.06) 0%,transparent 60%),var(--bg);}
+#s1{background:linear-gradient(135deg,rgba(96,165,250,.05) 0%,var(--bg) 50%,rgba(34,199,146,.04) 100%);}
+#s2{background:linear-gradient(160deg,rgba(155,135,245,.05) 0%,var(--bg) 55%,rgba(96,165,250,.04) 100%);}
+#s3{background:linear-gradient(140deg,rgba(34,199,146,.04) 0%,var(--bg) 50%,rgba(155,135,245,.04) 100%);}
+#s4{background:linear-gradient(150deg,rgba(245,166,35,.04) 0%,var(--bg) 55%,rgba(34,199,146,.04) 100%);}
+#s5{background:linear-gradient(135deg,rgba(232,83,58,.04) 0%,var(--bg) 55%,rgba(96,165,250,.04) 100%);}
+#s6{background:radial-gradient(ellipse 70% 50% at 50% 50%,rgba(34,199,146,.06) 0%,transparent 65%),var(--bg);}
+
+/* ── grid utilities ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+
+/* ── canvas bg ── */
+canvas.bgc{position:absolute;inset:0;pointer-events:none;opacity:.4;}
+
+/* ── decision matrix ── */
+.dmatrix{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-top:1rem;}
+.dm-h{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;background:rgba(255,255,255,.04);color:var(--ink3);}
+.dm-h.ha{color:var(--plan-a);background:rgba(34,199,146,.06);}
+.dm-h.hb{color:var(--plan-b);background:rgba(96,165,250,.06);}
+.dm-h.hc{color:var(--plan-c);background:rgba(155,135,245,.06);}
+.dm-row{display:contents;}
+.dm-row:hover .dm-cat,.dm-row:hover .dm-cell{background:rgba(255,255,255,.025);}
+.dm-cat{font-family:var(--mono);font-size:.65rem;color:var(--ink2);padding:8px 12px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;white-space:nowrap;}
+.dm-cell{font-size:.75rem;color:var(--ink2);padding:8px 12px;border-top:1px solid rgba(255,255,255,.05);line-height:1.45;}
+.dm-cell.a{border-left:2px solid rgba(34,199,146,.2);}
+.dm-cell.b{border-left:2px solid rgba(96,165,250,.2);}
+.dm-cell.c{border-left:2px solid rgba(155,135,245,.2);}
+.dot-a{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--plan-a);margin-right:5px;vertical-align:middle;}
+.dot-b{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--plan-b);margin-right:5px;vertical-align:middle;}
+.dot-c{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--plan-c);margin-right:5px;vertical-align:middle;}
+
+/* ── locked items band ── */
+.locked-band{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.18);border-radius:8px;padding:10px 14px;margin-top:1rem;}
+.locked-band-title{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:8px;}
+.locked-items{display:flex;flex-wrap:wrap;gap:6px;}
+.locked-item{font-family:var(--mono);font-size:.64rem;padding:3px 9px;border-radius:4px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:rgba(248,113,113,.8);}
+
+/* ── footer ── */
+.sfooter{font-family:var(--mono);font-size:.58rem;color:var(--ink3);margin-top:auto;padding-top:1.4rem;letter-spacing:.08em;}
+
+/* scroll nav dots */
+.sdots{position:fixed;right:1.2rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:50;}
+.sdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.15);cursor:pointer;transition:all .2s;border:none;}
+.sdot.on{background:var(--teal);transform:scale(1.3);}
+
+/* ── LLD map ── */
+.lld-map{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:0;margin-top:1rem;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+.lm-head{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;background:rgba(255,255,255,.05);color:var(--ink3);}
+.lm-head.ha{color:var(--plan-a);background:rgba(34,199,146,.06);}
+.lm-head.hb{color:var(--plan-b);background:rgba(96,165,250,.06);}
+.lm-head.hc{color:var(--plan-c);background:rgba(155,135,245,.06);}
+.lm-component{font-family:var(--mono);font-size:.65rem;color:var(--ink2);padding:7px 12px;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);display:flex;align-items:center;}
+.lm-cell{font-size:.72rem;color:var(--ink2);padding:7px 12px;border-top:1px solid rgba(255,255,255,.05);line-height:1.4;}
+.lm-cell.a{border-left:2px solid rgba(34,199,146,.15);}
+.lm-cell.b{border-left:2px solid rgba(96,165,250,.15);}
+.lm-cell.c{border-left:2px solid rgba(155,135,245,.15);}
+.lm-grp{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;padding:5px 12px;background:rgba(255,255,255,.03);color:var(--ink3);grid-column:1/-1;}
+
+/* ── cost cards ── */
+.cost-card{border-radius:12px;border:1.5px solid;overflow:hidden;display:flex;flex-direction:column;}
+.cost-card-a{border-color:rgba(34,199,146,.3);background:rgba(34,199,146,.025);}
+.cost-card-b{border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.025);}
+.cost-card-c{border-color:rgba(155,135,245,.3);background:rgba(155,135,245,.025);}
+.cost-card-head{padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07);}
+.cost-card-body{padding:14px 18px;flex:1;}
+.cbar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.cbar-lbl{font-family:var(--mono);font-size:.57rem;color:var(--ink2);width:138px;flex-shrink:0;}
+.cbar-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.cbar{height:100%;border-radius:3px;}
+.cbar-val{font-family:var(--mono);font-size:.57rem;color:var(--ink2);width:46px;text-align:right;flex-shrink:0;}
+/* ── env diagram tabs ── */
+.env-tabs{display:flex;gap:6px;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;}
+.env-tab{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;padding:6px 16px;border-radius:20px;cursor:pointer;border:1.5px solid;background:none;transition:all .2s;}
+.env-tab.ta{border-color:rgba(34,199,146,.3);color:rgba(34,199,146,.5);}
+.env-tab.ta.on{border-color:#22c792;color:#22c792;background:rgba(34,199,146,.1);}
+.env-tab.tb{border-color:rgba(96,165,250,.3);color:rgba(96,165,250,.5);}
+.env-tab.tb.on{border-color:#60a5fa;color:#60a5fa;background:rgba(96,165,250,.1);}
+.env-tab.tc{border-color:rgba(155,135,245,.3);color:rgba(155,135,245,.5);}
+.env-tab.tc.on{border-color:#9b87f5;color:#9b87f5;background:rgba(155,135,245,.1);}
+.env-pane{display:none;}
+.env-pane.on{display:grid;grid-template-columns:1fr 310px;gap:1.4rem;align-items:start;}
+.mwrap{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px;min-height:380px;display:flex;align-items:center;justify-content:center;overflow:auto;}
+.mwrap svg{width:100%;height:auto;max-height:440px;}
+.diag-spec-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.diag-spec-key{font-family:var(--mono);font-size:.56rem;color:var(--ink3);flex-shrink:0;}
+.diag-spec-val{font-family:var(--mono);font-size:.6rem;text-align:right;line-height:1.4;}
+.diag-analogy{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 13px;font-family:var(--serif);font-size:.88rem;color:var(--ink2);line-height:1.55;font-style:italic;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="ntitle">DGTP Sint Maarten · Part 2 — Azure Cloud Architecture</span>
+  <button class="navbtn on" onclick="goSlide(0)">Overview</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(1)">3 Plans</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(2)" style="color:var(--plan-a);">Plan A</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(3)" style="color:var(--plan-b);">Plan B</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(4)" style="color:var(--plan-c);">Plan C</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(5)" style="color:#9b87f5;">Dep. Graph</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(6)">Layer Stack</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(7)">LLD → Azure</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(8)">Decision Matrix</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(9)">Locked Items</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(10)">Recommendation</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(11)" style="color:var(--amber);">Cost Model</button>
+  <div class="navsep"></div>
+  <button class="navbtn" onclick="goSlide(12)">Architecture</button>
+</nav>
+
+<!-- SCROLL DOTS -->
+<div class="sdots" id="sdots">
+  <button class="sdot on" onclick="goSlide(0)"></button>
+  <button class="sdot" onclick="goSlide(1)"></button>
+  <button class="sdot" style="background:rgba(34,199,146,.4);" onclick="goSlide(2)"></button>
+  <button class="sdot" style="background:rgba(96,165,250,.4);" onclick="goSlide(3)"></button>
+  <button class="sdot" style="background:rgba(155,135,245,.4);" onclick="goSlide(4)"></button>
+  <button class="sdot" onclick="goSlide(5)"></button>
+  <button class="sdot" onclick="goSlide(6)"></button>
+  <button class="sdot" onclick="goSlide(7)"></button>
+  <button class="sdot" style="background:rgba(155,135,245,.35);" onclick="goSlide(5)"></button>
+  <button class="sdot" onclick="goSlide(6)"></button>
+  <button class="sdot" onclick="goSlide(7)"></button>
+  <button class="sdot" onclick="goSlide(8)"></button>
+  <button class="sdot" onclick="goSlide(9)"></button>
+  <button class="sdot" onclick="goSlide(10)"></button>
+  <button class="sdot" style="background:rgba(245,166,35,.35);" onclick="goSlide(11)"></button>
+  <button class="sdot" onclick="goSlide(12)"></button>
+</div>
+
+<!-- ══════════════ SLIDE 0 — COVER ══════════════ -->
+<section class="slide" id="s0">
+<canvas class="bgc" id="bgc0"></canvas>
+<div class="si">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2rem;max-width:900px;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.8rem;">Technical Workshop · Part 2 · June 2026 · cost-refreshed 2026-06-01</div>
+      <h1>Azure Cloud<br/>Architecture<br/><em style="color:var(--teal);font-style:italic;">Three Environments</em></h1>
+      <p class="lead" style="margin-top:1.2rem;">Mapping every DGTP LLD component to an Azure service across the three environments for Sint Maarten's 50,000 citizens. Plan A is the Dev sandbox (<strong>$273/mo</strong>). Plan B is the Staging / UAT gate (<strong>$679/mo</strong>). Plan C is Production — deployed Minimal, Standard, or Full (<strong>$2,433–4,955/mo</strong>).</p>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;border:1px solid rgba(34,199,146,.25);background:rgba(34,199,146,.05);">
+        <span style="font-family:var(--mono);font-size:1.2rem;color:var(--plan-a);">A</span>
+        <div><div style="font-family:var(--mono);font-size:.65rem;color:var(--plan-a);">DEV · $273/mo</div><div style="font-size:.75rem;color:var(--ink2);">Sandbox · lean · App Service</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;border:1px solid rgba(96,165,250,.25);background:rgba(96,165,250,.05);">
+        <span style="font-family:var(--mono);font-size:1.2rem;color:var(--plan-b);">B</span>
+        <div><div style="font-family:var(--mono);font-size:.65rem;color:var(--plan-b);">STAGING · $679/mo</div><div style="font-size:.75rem;color:var(--ink2);">UAT gate · warm SQL · autoscale</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;border:1px solid rgba(155,135,245,.25);background:rgba(155,135,245,.05);">
+        <span style="font-family:var(--mono);font-size:1.2rem;color:var(--plan-c);">C</span>
+        <div><div style="font-family:var(--mono);font-size:.65rem;color:var(--plan-c);">PROD · $2,433–4,955/mo</div><div style="font-size:.75rem;color:var(--ink2);">Dual ASE v3 · Minimal→Full</div></div>
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="met"><span class="mv mv-teal">7</span><div class="ml">Architecture layers</div></div>
+      <div class="met"><span class="mv mv-blue">6</span><div class="ml">Registry adapters</div></div>
+      <div class="met"><span class="mv mv-violet">4</span><div class="ml">Azure subscriptions</div></div>
+      <div class="met"><span class="mv mv-amber">50k</span><div class="ml">Population served</div></div>
+      <div class="met"><span class="mv mv-rose">7</span><div class="ml">Locked components</div></div>
+    </div>
+  </div>
+  <div class="sfooter">DGTP-LLD-001 v1.0 · Government of Sint Maarten · Orangebd · scroll to navigate</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 1 — THREE PLANS ══════════════ -->
+<section class="slide" id="s1">
+<div class="si">
+  <span class="stag stag-teal">Cloud Strategy</span>
+  <div class="rule" style="background:var(--teal);"></div>
+  <h2>Three Environments, One Architecture</h2>
+  <p class="lead">The same LLD design runs across <strong>Dev</strong>, <strong>Staging</strong>, and <strong>Production</strong> — only the service tier and scale change. Production itself ships in three sizings (Minimal / Standard / Full) so DGTP can launch lean and scale on evidence. All edge + network is a shared service hosted once in the Production subscription, so Dev and Staging carry $0 edge.</p>
+
+  <div class="plans" style="margin-top:1.4rem;">
+
+    <!-- PLAN A -->
+    <div class="plan plan-a">
+      <div class="plan-head">
+        <div class="plan-letter">A</div>
+        <div class="plan-name">Dev Sandbox</div>
+        <div class="plan-sub">$273/mo · App Service · synthetic data</div>
+      </div>
+      <div class="plan-body">
+        <p class="plan-desc">A functional-correctness and integration environment — architecturally representative of Prod so Bicep modules and app wiring are validated, at the lowest credible cost. Multi-tenant App Service (no ASE stamp), serverless data, single region. No HA, no Sentinel, no DR. Carries no citizen PII — synthetic / seeded data only.</p>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;">
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-a);flex-shrink:0;">✓</span>All 6 registry adapters live</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-a);flex-shrink:0;">✓</span>App Service P0v3 ×2 (frontend + backend)</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-a);flex-shrink:0;">✓</span>Azure SQL DB serverless + Cosmos serverless</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-a);flex-shrink:0;">✓</span>Service Bus + Event Grid · edge shared from Prod</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.6);display:flex;gap:6px;align-items:flex-start;"><span style="flex-shrink:0;">✗</span>No HA · No Sentinel · No DR</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.6);display:flex;gap:6px;align-items:flex-start;"><span style="flex-shrink:0;">✗</span>No zone-redundancy · LRS storage · no PII</div>
+        </div>
+        <div class="plan-verdict">Best for: functional + integration testing · synthetic data only</div>
+        <p style="font-size:.7rem;color:var(--ink3);font-family:var(--mono);margin-top:6px;">Path: promote validated builds to Staging — identical Bicep modules, only the SKUs change</p>
+      </div>
+    </div>
+
+    <!-- PLAN B -->
+    <div class="plan plan-b">
+      <div class="plan-head">
+        <div class="plan-letter">B</div>
+        <div class="plan-name">Staging / UAT</div>
+        <div class="plan-sub">$679/mo · warm SQL · autoscale 1→2</div>
+      </div>
+      <div class="plan-body">
+        <p class="plan-desc">The last gate before Production — UAT, integration sign-off, and light HA / performance testing. Higher-end compute and data than Dev (P1v3 autoscale, warm provisioned SQL, Cosmos autoscale, Key Vault Premium) on masked / synthetic datasets. Edge is still shared from the Prod subscription, so the whole budget goes into the workload.</p>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;">
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-b);flex-shrink:0;">✓</span>App Service P1v3 ×2 · autoscale 1→2</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-b);flex-shrink:0;">✓</span>Warm Azure SQL DB GP 2 vCore</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-b);flex-shrink:0;">✓</span>Cosmos autoscale + Key Vault Premium</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-b);flex-shrink:0;">✓</span>Defender 5 plans · App Insights → central LAW</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:rgba(245,166,35,.7);display:flex;gap:6px;align-items:flex-start;"><span style="flex-shrink:0;">△</span>Edge shared from Prod sub ($0 booked here)</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:rgba(245,166,35,.7);display:flex;gap:6px;align-items:flex-start;"><span style="flex-shrink:0;">△</span>Single region · ZRS · masked UAT data only</div>
+        </div>
+        <div class="plan-verdict">Best for: last gate before Production · UAT + load testing</div>
+        <p style="font-size:.7rem;color:var(--ink3);font-family:var(--mono);margin-top:6px;">Path: cut over to Production at the chosen sizing — dual ASE v3, edge already in place</p>
+      </div>
+    </div>
+
+    <!-- PLAN C -->
+    <div class="plan plan-c">
+      <div class="plan-head">
+        <div class="plan-letter">C</div>
+        <div class="plan-name">Production</div>
+        <div class="plan-sub">$2,433–4,955/mo · Minimal → Standard → Full</div>
+      </div>
+      <div class="plan-body">
+        <p class="plan-desc">The live citizen environment, in three sizings. <strong>Minimal</strong> ($2,433): dual ASE v3 single-instance, serverless SQL, LRS. <strong>Standard</strong> ($3,419): 2× ASE per tier (HA), warm SQL, ZRS. <strong>Full</strong> ($4,955): adds Front Door Premium, APIM Standard v2, zone-redundant 4-vCore SQL, GRS + DR region. All edge (Firewall Standard, App Gateway, Front Door, APIM) lives here and is shared by every environment.</p>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;">
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-c);flex-shrink:0;">✓</span>Dual ASE v3 I1v2 (1× Min · 2× Std/Full HA)</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-c);flex-shrink:0;">✓</span>Azure Firewall Standard (shared) + Sentinel</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-c);flex-shrink:0;">✓</span>Azure SQL DB GP + Cosmos + WORM blob</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-c);flex-shrink:0;">✓</span>Front Door + App Gateway WAF v2 + APIM</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--ink2);display:flex;gap:6px;align-items:flex-start;"><span style="color:var(--plan-c);flex-shrink:0;">✓</span>ISO 27001 · GDPR · PCI-DSS (e-Payment)</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:rgba(245,166,35,.7);display:flex;gap:6px;align-items:flex-start;"><span style="flex-shrink:0;">△</span>Full adds GRS + DR region (netherlandsnorth)</div>
+        </div>
+        <div class="plan-verdict">Best for: live citizen environment · size on demand</div>
+        <p style="font-size:.7rem;color:var(--ink3);font-family:var(--mono);margin-top:6px;">Sizing path: Minimal (launch) → Standard (HA) → Full (DR). ADRs: external-LLM removal · eID supersedes Entra · shared-edge isolation</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="sfooter">Scroll → Layer Stack Architecture</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 2 — PLAN A DEEP DIVE ══════════════ -->
+<section class="slide" id="spa" style="background:linear-gradient(150deg,rgba(34,199,146,.06) 0%,rgba(12,21,32,1) 50%,rgba(34,199,146,.03) 100%);">
+<div class="si">
+
+<style>
+/* ── story box ── */
+.storybox{border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;gap:14px;align-items:flex-start;border:1px solid;}
+.storybox-icon{font-size:1.6rem;flex-shrink:0;line-height:1;margin-top:2px;}
+.storybox-body{flex:1;min-width:0;}
+.storybox-label{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px;}
+.storybox-title{font-family:var(--serif);font-size:1.05rem;color:var(--ink);margin-bottom:4px;line-height:1.2;}
+.storybox-text{font-size:.8rem;color:var(--ink2);line-height:1.65;}
+.storybox-text strong{color:var(--ink);}
+/* ── component pill grid ── */
+.pill-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:.6rem;}
+.pill{font-family:var(--mono);font-size:.62rem;padding:3px 10px;border-radius:12px;white-space:nowrap;}
+.pill-on{background:rgba(34,199,146,.1);border:1px solid rgba(34,199,146,.3);color:var(--plan-a);}
+.pill-on-b{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--plan-b);}
+.pill-on-c{background:rgba(155,135,245,.1);border:1px solid rgba(155,135,245,.3);color:var(--plan-c);}
+.pill-off{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(232,228,220,.3);}
+.pill-warn{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);color:var(--amber);}
+.pill-danger{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--rose);}
+/* ── analogy card ── */
+.analogy{border-radius:10px;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);}
+.analogy-eyebrow{font-family:var(--mono);font-size:.55rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:5px;}
+.analogy-text{font-family:var(--serif);font-size:1rem;color:var(--ink2);line-height:1.5;font-style:italic;}
+.analogy-text em{color:var(--plan-a);font-style:normal;}
+/* ── upgrade trigger bar ── */
+.utrigger{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:6px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.15);margin-bottom:5px;}
+.utrigger-icon{font-size:.9rem;flex-shrink:0;}
+.utrigger-text{font-size:.78rem;color:var(--ink2);line-height:1.4;}
+.utrigger-text strong{color:var(--amber);}
+</style>
+
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:.4rem;">
+    <span style="font-family:var(--mono);font-size:3rem;font-weight:500;color:var(--plan-a);line-height:1;">A</span>
+    <div>
+      <div class="eyebrow" style="margin-bottom:2px;">Plan A · Dev Sandbox · $273/mo</div>
+      <h2 style="font-size:1.5rem;">Build and test the whole platform — cheaply, with no citizen data.</h2>
+    </div>
+  </div>
+
+  <div class="analogy" style="margin-bottom:1.2rem;">
+    <div class="analogy-eyebrow">Non-technical analogy</div>
+    <div class="analogy-text">Think of Plan A as the <em>workshop garage</em> — where you build and road-test the vehicle before it ever carries a passenger. It mirrors the real thing closely, but runs on a test track with crash-test dummies, not citizens. Cheap to run, safe to break.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+    <div>
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--plan-a);margin-bottom:8px;">What Plan A includes</div>
+
+      <div class="storybox" style="background:rgba(34,199,146,.05);border-color:rgba(34,199,146,.2);">
+        <div class="storybox-icon">🚪</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-a);">The front door (shared)</div>
+          <div class="storybox-title">Reaches the portal through the shared Prod edge</div>
+          <div class="storybox-text">Dev doesn't pay for its own front door. It reaches the portal through the same Front Door / App Gateway / APIM edge hosted once in the Production subscription. <strong>Think of it as a shared reception desk</strong> for all three environments — host-header and path rules keep Dev traffic separated from real citizen traffic. $0 edge cost is booked to Dev.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(34,199,146,.05);border-color:rgba(34,199,146,.2);">
+        <div class="storybox-icon">⚙️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-a);">The engine room</div>
+          <div class="storybox-title">App Service P0v3 ×2 — all 6 registries wired</div>
+          <div class="storybox-text">Two small App Service plans — one front-end, one back-end — run the full request path end-to-end. <strong>No high-availability and no ASE stamp</strong>: Dev only needs to prove the wiring works, not survive an outage. All six government registries (Civil, Commerce, Tax, TEATT, Permits, Land) are connected against test endpoints.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(34,199,146,.05);border-color:rgba(34,199,146,.2);">
+        <div class="storybox-icon">🗄️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-a);">The data safe</div>
+          <div class="storybox-title">Azure SQL DB serverless + Cosmos cache + Audit Log</div>
+          <div class="storybox-text">Data lives in a serverless SQL database that auto-pauses when idle — you pay only for the hours it runs. A Cosmos cache answers most requests in milliseconds instead of calling the registry every time. The 7-year audit-log mechanism and SHA-256 identity scrambling are wired exactly as in Prod — but in Dev they hold <strong>synthetic data only, never real citizens</strong>.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(34,199,146,.05);border-color:rgba(34,199,146,.2);">
+        <div class="storybox-icon">🔒</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-a);">Security baseline</div>
+          <div class="storybox-title">Identity + Secrets Vault + Defender</div>
+          <div class="storybox-text">Sign-in uses the <strong>national eID</strong> directly (external OIDC/SAML — no Azure identity service to pay for). All secrets and API keys live in Key Vault, reached only by managed identity — <strong>never hardcoded</strong>. Microsoft Defender for Cloud watches the App Service, SQL and Key Vault; the shared firewall in the Prod subscription handles network filtering.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:rgba(248,113,113,.7);margin-bottom:8px;">What Plan A does NOT include — and why that's fine</div>
+
+      <div class="storybox" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.15);margin-bottom:8px;">
+        <div class="storybox-icon">🛡️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--rose);">No dedicated edge or firewall</div>
+          <div class="storybox-title">Shared from the Production subscription</div>
+          <div class="storybox-text">Dev has no Front Door, App Gateway or firewall of its own — these are shared services hosted once in Production and consumed by every environment. <strong>This is why Dev costs $273, not thousands.</strong> The one thing to confirm at design time is that host-header / path routing keeps non-prod traffic cleanly separated on the shared edge.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.15);margin-bottom:8px;">
+        <div class="storybox-icon">📊</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--rose);">No Sentinel (security operations centre)</div>
+          <div class="storybox-title">Security investigations via Azure Defender alerts</div>
+          <div class="storybox-text">Microsoft Sentinel is a full security intelligence platform — powerful, but adds significant cost and requires a trained security team to interpret its findings. <strong>Without a dedicated SOC, activating Sentinel creates noise, not insight.</strong> Plan A uses Azure Defender alerts and log queries instead — the same data, simpler tooling.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.15);margin-bottom:8px;">
+        <div class="storybox-icon">⚖️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--rose);">No high-availability failover</div>
+          <div class="storybox-title">Single instance — fine for a test environment</div>
+          <div class="storybox-text">Dev runs one instance per tier with no failover. If it restarts, developers wait a moment — no citizen is affected, because no citizen uses Dev. <strong>Paying for high-availability in a sandbox would be spending money to protect crash-test dummies.</strong> HA arrives in Staging and is standard in Production.</div>
+        </div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--amber);margin-bottom:8px;margin-top:1rem;">When to promote Dev → Staging</div>
+      <div class="utrigger"><div class="utrigger-icon">✅</div><div class="utrigger-text"><strong>All 6 adapters pass integration tests</strong> against the registry endpoints</div></div>
+      <div class="utrigger"><div class="utrigger-icon">📈</div><div class="utrigger-text"><strong>App Service CPU and Cosmos RU/s stay within budget</strong> under representative load</div></div>
+      <div class="utrigger"><div class="utrigger-icon">🔐</div><div class="utrigger-text"><strong>Security scan + Defender baseline clean</strong> on the candidate build</div></div>
+      <div class="utrigger"><div class="utrigger-icon">📋</div><div class="utrigger-text"><strong>Masked UAT data ready</strong> — cut a Staging release with the same Bicep modules</div></div>
+    </div>
+  </div>
+
+  <div class="pill-grid" style="margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.07);">
+    <span style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);align-self:center;margin-right:4px;">Plan A includes:</span>
+    <span class="pill pill-on">All 6 registry adapters</span>
+    <span class="pill pill-on">APIM 8-stage pipeline (shared)</span>
+    <span class="pill pill-on">eID login (external)</span>
+    <span class="pill pill-on">7yr audit log</span>
+    <span class="pill pill-on">Cosmos data cache</span>
+    <span class="pill pill-on">Service Bus events</span>
+    <span class="pill pill-on">Bicep IaC</span>
+    <span class="pill pill-on">Secrets vault</span>
+    <span class="pill pill-off">Dedicated edge</span>
+    <span class="pill pill-off">Sentinel</span>
+    <span class="pill pill-off">HA failover</span>
+    <span class="pill pill-off">Zone-redundancy</span>
+    <span class="pill pill-off">Geo-DR</span>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 3 — PLAN B DEEP DIVE ══════════════ -->
+<section class="slide" id="spb" style="background:linear-gradient(150deg,rgba(96,165,250,.06) 0%,rgba(12,21,32,1) 50%,rgba(96,165,250,.03) 100%);">
+<div class="si">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:.4rem;">
+    <span style="font-family:var(--mono);font-size:3rem;font-weight:500;color:var(--plan-b);line-height:1;">B</span>
+    <div>
+      <div class="eyebrow" style="margin-bottom:2px;">Plan B · Staging / UAT · $679/mo</div>
+      <h2 style="font-size:1.5rem;">The last gate before Production — prove it under load, on safe data.</h2>
+    </div>
+  </div>
+
+  <div class="analogy" style="margin-bottom:1.2rem;">
+    <div class="analogy-eyebrow">Non-technical analogy</div>
+    <div class="analogy-text">Plan B is the <em>dress rehearsal on the real stage</em> — same script, same set, a full run-through with stand-ins instead of the public. You warm up the database, rehearse the failover, and prove every cue works before opening night in Production.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+    <div>
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--plan-b);margin-bottom:8px;">What Staging adds over Dev</div>
+
+      <div class="storybox" style="background:rgba(96,165,250,.05);border-color:rgba(96,165,250,.2);">
+        <div class="storybox-icon">🔁</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-b);">Autoscale headroom</div>
+          <div class="storybox-title">App Service P1v3 — scales 1→2 under load</div>
+          <div class="storybox-text">Staging steps up to P1v3 plans — twice the cores and RAM of Dev — that <strong>autoscale from one instance to two</strong> when a load test pushes them. This is where you prove the platform holds up under realistic citizen traffic, before it ever sees a real citizen.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(96,165,250,.05);border-color:rgba(96,165,250,.2);">
+        <div class="storybox-icon">🗄️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-b);">Warm, load-testable database</div>
+          <div class="storybox-title">Azure SQL DB — provisioned 2 vCore, always warm</div>
+          <div class="storybox-text">Dev's database auto-pauses to save money; Staging's is <strong>provisioned and always warm</strong>, so load tests measure real performance with no cold-start surprises. It's the same engine that runs in Production — just sized for UAT.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(96,165,250,.05);border-color:rgba(96,165,250,.2);">
+        <div class="storybox-icon">🔑</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-b);">Production-parity data tier</div>
+          <div class="storybox-title">Cosmos autoscale + Key Vault Premium (HSM keys)</div>
+          <div class="storybox-text">The Cosmos cache moves to <strong>autoscale</strong> — it bills only for the busiest hour — and Key Vault upgrades to <strong>Premium with HSM-backed keys</strong>, the same key-protection standard Production uses. Staging now mirrors Prod's data and secrets behaviour exactly.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(96,165,250,.05);border-color:rgba(96,165,250,.2);">
+        <div class="storybox-icon">📡</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-b);">Broader threat protection</div>
+          <div class="storybox-title">Microsoft Defender — 5 plans active</div>
+          <div class="storybox-text">Staging widens Microsoft Defender for Cloud from three plans to <strong>five</strong> — adding Storage and Containers to App Service, SQL and Key Vault. Telemetry still flows to the central Log Analytics workspace shared by all environments, so there's no separate SIEM cost here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--ink3);margin-bottom:8px;">What stays the same as Plan A</div>
+      <div class="storybox" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);margin-bottom:1rem;">
+        <div class="storybox-icon">✅</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--ink3);">Unchanged components</div>
+          <div class="storybox-text">All 6 registry connections work identically. The citizen login (national eID) is unchanged. The 7-year audit log and SHA-256 identity scrambling are unchanged. The Cosmos cache, Service Bus message system, and Bicep infrastructure-as-code pipelines are identical. <strong>Only the scale and data tier change — not the architecture.</strong></div>
+        </div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:rgba(248,113,113,.7);margin-bottom:8px;">What Plan B still does NOT include</div>
+
+      <div class="storybox" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.15);margin-bottom:6px;">
+        <div class="storybox-icon">⚡</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--rose);">No dedicated edge — shared from Prod</div>
+          <div class="storybox-text">Like Dev, Staging has no Front Door, App Gateway or firewall of its own; it rides the shared edge in the Production subscription. <strong>This keeps the whole $679 budget in the workload</strong> — where UAT actually exercises it — instead of in edge appliances that already exist in Prod.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.15);margin-bottom:6px;">
+        <div class="storybox-icon">🌍</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--rose);">No geographic disaster recovery</div>
+          <div class="storybox-text">If the entire Azure data centre region has an outage, Plan B has no automatic failover to a second region. <strong>For Sint Maarten's usage patterns, a regional Azure outage is extremely rare and brief.</strong> The Cosmos DB and SQL databases have local backups that allow recovery within hours — not days.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.15);">
+        <div class="storybox-icon">🏗️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--rose);">No production data, no zone spread</div>
+          <div class="storybox-text">Staging carries only masked or synthetic UAT data — never real citizen records — so PCI-DSS and full-ISO controls stay scoped to Production. It also runs in a single zone; zone-redundancy is a Production (Full) feature, not a Staging one.</div>
+        </div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--amber);margin-bottom:8px;margin-top:1rem;">When to cut over Staging → Production</div>
+      <div class="utrigger"><div class="utrigger-icon">✅</div><div class="utrigger-text"><strong>UAT sign-off complete</strong> and load tests pass at the target citizen volume</div></div>
+      <div class="utrigger"><div class="utrigger-icon">📋</div><div class="utrigger-text"><strong>Production sizing chosen</strong> — Minimal (launch), Standard (HA) or Full (DR + geo)</div></div>
+      <div class="utrigger"><div class="utrigger-icon">🔐</div><div class="utrigger-text"><strong>PCI-DSS scope confirmed</strong> for e-Payment · eID degraded-mode plan signed off</div></div>
+    </div>
+  </div>
+
+  <div class="pill-grid" style="margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.07);">
+    <span style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);align-self:center;margin-right:4px;">Plan B adds:</span>
+    <span class="pill pill-on-b">App Service P1v3 · autoscale 1→2</span>
+    <span class="pill pill-on-b">Warm SQL DB 2 vCore</span>
+    <span class="pill pill-on-b">Cosmos autoscale</span>
+    <span class="pill pill-on-b">Key Vault Premium (HSM)</span>
+    <span class="pill pill-on-b">Defender 5 plans</span>
+    <span class="pill pill-on-b">ZRS storage</span>
+    <span class="pill pill-off">Dedicated edge (shared)</span>
+    <span class="pill pill-off">Sentinel (central)</span>
+    <span class="pill pill-off">Zone spread</span>
+    <span class="pill pill-off">Geo-DR</span>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 4 — PLAN C DEEP DIVE ══════════════ -->
+<section class="slide" id="spc" style="background:linear-gradient(150deg,rgba(155,135,245,.06) 0%,rgba(12,21,32,1) 50%,rgba(155,135,245,.03) 100%);">
+<div class="si">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:.4rem;">
+    <span style="font-family:var(--mono);font-size:3rem;font-weight:500;color:var(--plan-c);line-height:1;">C</span>
+    <div>
+      <div class="eyebrow" style="margin-bottom:2px;">Plan C · Production · $2,433–4,955/mo</div>
+      <h2 style="font-size:1.5rem;">The live citizen environment — sized Minimal, Standard, or Full.</h2>
+    </div>
+  </div>
+
+  <div class="analogy" style="margin-bottom:1.2rem;">
+    <div class="analogy-eyebrow">Non-technical analogy</div>
+    <div class="analogy-text">Plan C is <em>opening day at the real venue</em> — the doors open to all 50,000 citizens. You can open with one stage (Minimal), add a second for resilience (Standard), or run a full house with a backup venue in another city (Full). You grow the room as the crowd grows — you don't build the whole stadium on day one.</div>
+  </div>
+
+  <div style="background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.25);border-radius:8px;padding:10px 16px;margin-bottom:1.2rem;display:flex;gap:10px;align-items:flex-start;">
+    <span style="font-size:1.2rem;flex-shrink:0;">⚠️</span>
+    <div style="font-size:.8rem;color:rgba(232,228,220,.7);line-height:1.65;">
+      <strong style="color:var(--amber);">Important for decision-makers:</strong> Production carries real citizen data, so it depends on four blocking gates being cleared first — shared-edge traffic isolation, the firewall-tier decision for PCI e-Payment, external-LLM PII / DPIA clearance, and the national-eID SLA / degraded-mode plan. These are compliance obligations, not optional polish.
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+    <div>
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--plan-c);margin-bottom:8px;">What Plan C adds over Plan B</div>
+
+      <div class="storybox" style="background:rgba(155,135,245,.05);border-color:rgba(155,135,245,.2);">
+        <div class="storybox-icon">🏛️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-c);">Production compute — dual ASE v3</div>
+          <div class="storybox-title">Frontend + Backend stamps, scaled to the chosen sizing</div>
+          <div class="storybox-text">Production runs the <strong>dual App Service Environment</strong> topology — a dedicated, network-isolated frontend stamp and backend stamp. Minimal runs one instance each; Standard and Full run two each for <strong>automatic high-availability</strong>; Full spreads across availability zones. Same architecture throughout — you just add instances as the crowd grows.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(155,135,245,.05);border-color:rgba(155,135,245,.2);">
+        <div class="storybox-icon">🛡️</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-c);">The shared edge lives here</div>
+          <div class="storybox-title">Azure Firewall Standard + Front Door + App Gateway + APIM</div>
+          <div class="storybox-text">All edge and network — <strong>Azure Firewall Standard ($912/mo, the single biggest line), Front Door, Application Gateway WAF v2 and API Management</strong> — is hosted once in Production and shared by every environment. Front Door and APIM step up to Premium / Standard v2 only in the Full sizing.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(155,135,245,.05);border-color:rgba(155,135,245,.2);">
+        <div class="storybox-icon">🔑</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-c);">Hardware-protected encryption keys</div>
+          <div class="storybox-title">Key Vault Premium — HSM-backed keys</div>
+          <div class="storybox-text">Production protects encryption keys in a <strong>hardware security module</strong> (FIPS 140-2 Level 2) — keys are generated and stored in tamper-resistant hardware and can never be exported, even by Microsoft engineers. This replaces a far costlier dedicated Managed HSM, and is the key-protection standard required if PCI-DSS scope is confirmed for the e-Payment flow.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(155,135,245,.05);border-color:rgba(155,135,245,.2);">
+        <div class="storybox-icon">🌐</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--plan-c);">Tamper-proof 7-year archive</div>
+          <div class="storybox-title">WORM immutable blob storage</div>
+          <div class="storybox-text">Documents and the audit trail are written to <strong>WORM (write-once, read-many) immutable storage</strong> with a 7-year retention lock — a legal compliance requirement that cannot be downgraded. Storage redundancy grows with the sizing: LRS (Minimal) → ZRS (Standard) → GRS with a DR region (Full).</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--amber);margin-bottom:8px;">Formal commitments Plan C requires</div>
+
+      <div class="storybox" style="background:rgba(245,166,35,.05);border-color:rgba(245,166,35,.2);margin-bottom:8px;">
+        <div class="storybox-icon">📋</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--amber);">ADR — external-LLM removal</div>
+          <div class="storybox-title">Azure OpenAI + AI Search removed · chatbot is external</div>
+          <div class="storybox-text">The chatbot LLM and its search / RAG index are now an <strong>external, out-of-scope provider</strong> — no Azure-side AI is funded in any environment. This supersedes the previously locked AI tier and needs a formal ADR, plus PII / DPIA clearance before any citizen data reaches the external model.</div>
+        </div>
+      </div>
+
+      <div class="storybox" style="background:rgba(245,166,35,.05);border-color:rgba(245,166,35,.2);margin-bottom:8px;">
+        <div class="storybox-icon">📋</div>
+        <div class="storybox-body">
+          <div class="storybox-label" style="color:var(--amber);">ADR — eID supersedes Entra (ADR-004)</div>
+          <div class="storybox-title">National eID replaces Entra External ID · $0 CIAM</div>
+          <div class="storybox-text">Citizens authenticate through the <strong>national eID</strong> (federated OIDC / SAML) — Entra External ID is removed, so there is no Azure identity cost. This supersedes ADR-004 and makes the eID's SLA and a degraded-mode fallback plan a launch blocker for go-live.</div>
+        </div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--rose);margin-bottom:8px;margin-top:.5rem;">Items locked in Plan C — cannot be removed</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="border-radius:6px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);padding:8px 10px;">
+          <div style="font-family:var(--mono);font-size:.6rem;color:var(--rose);margin-bottom:3px;">🔒 WORM 7-yr storage</div>
+          <div style="font-size:.72rem;color:var(--ink2);">Write-once immutable archive. Legal compliance. Cannot downgrade.</div>
+        </div>
+        <div style="border-radius:6px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);padding:8px 10px;">
+          <div style="font-family:var(--mono);font-size:.6rem;color:var(--rose);margin-bottom:3px;">🔒 7-yr audit log (LTR)</div>
+          <div style="font-size:.72rem;color:var(--ink2);">Append-only audit trail, 7-year retention. EA Ordinance requirement.</div>
+        </div>
+        <div style="border-radius:6px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);padding:8px 10px;">
+          <div style="font-family:var(--mono);font-size:.6rem;color:var(--rose);margin-bottom:3px;">🔒 Azure Firewall Standard</div>
+          <div style="font-size:.72rem;color:var(--ink2);">Shared edge security boundary. PCI scope for e-Payment.</div>
+        </div>
+        <div style="border-radius:6px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);padding:8px 10px;">
+          <div style="font-family:var(--mono);font-size:.6rem;color:var(--rose);margin-bottom:3px;">🔒 Front Door + WAF v2</div>
+          <div style="font-size:.72rem;color:var(--ink2);">Public-facing WAF on the citizen entry path. Cannot disable.</div>
+        </div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--plan-c);margin-bottom:8px;margin-top:1rem;">Plan C delivers</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>HA from Standard · zone-redundant at Full</div>
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>GRS + DR region (netherlandsnorth) at Full</div>
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>Shared edge: Firewall + WAF + APIM</div>
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>FIPS 140-2 L2 hardware key protection</div>
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>7-year WORM compliance storage</div>
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>Sentinel (cost-optimized) + Defender</div>
+        <div style="display:flex;gap:8px;font-size:.78rem;color:var(--ink2);"><span style="color:var(--plan-c);">✓</span>ISO 27001 · GDPR · PCI-DSS (e-Payment)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pill-grid" style="margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.07);">
+    <span style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);align-self:center;margin-right:4px;">Plan C adds:</span>
+    <span class="pill pill-on-c">Dual ASE v3 (HA from Standard)</span>
+    <span class="pill pill-on-c">Azure Firewall Standard 🔒</span>
+    <span class="pill pill-on-c">Front Door + App Gateway WAF v2</span>
+    <span class="pill pill-on-c">Azure SQL DB GP (2–6 vCore)</span>
+    <span class="pill pill-on-c">Cosmos serverless / autoscale</span>
+    <span class="pill pill-on-c">KV Premium HSM</span>
+    <span class="pill pill-on-c">WORM 7-yr 🔒</span>
+    <span class="pill pill-on-c">Sentinel (optimized) + Defender</span>
+    <span class="pill pill-on-c">GRS + DR region (Full)</span>
+    <span class="pill pill-warn">ADR: external-LLM</span>
+    <span class="pill pill-warn">ADR: eID (ADR-004)</span>
+    <span class="pill pill-warn">PCI scope sign-off</span>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE — DEPENDENCY GRAPH ══════════════ -->
+<section class="slide" id="sgraph" style="padding:52px 0 0;height:100vh;max-height:100vh;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(ellipse 70% 60% at 50% 45%,rgba(15,25,45,1) 0%,rgba(12,21,32,1) 100%);">
+
+<style>
+#sgraph *{box-sizing:border-box;}
+#sgraph .gh{padding:10px 2.4rem 6px;flex-shrink:0;display:flex;align-items:center;gap:1.2rem;}
+#sgraph .gh h2{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#e8e4dc;margin:0;}
+#sgraph .gh p{font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(232,228,220,.3);margin:0;}
+
+/* plan filter tabs */
+#sgraph .gfilter{
+  display:flex;gap:4px;flex-shrink:0;
+  padding:0 2.4rem 6px;
+  align-items:center;
+}
+#sgraph .gftab{
+  font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;
+  padding:4px 12px;border-radius:20px;cursor:pointer;border:1.5px solid;
+  transition:all .2s;
+  background:none;
+}
+#sgraph .gftab.all{border-color:rgba(232,228,220,.2);color:rgba(232,228,220,.4);}
+#sgraph .gftab.all.on{border-color:rgba(232,228,220,.5);color:#e8e4dc;background:rgba(255,255,255,.07);}
+#sgraph .gftab.fa{border-color:rgba(34,199,146,.3);color:rgba(34,199,146,.5);}
+#sgraph .gftab.fa.on{border-color:#22c792;color:#22c792;background:rgba(34,199,146,.1);}
+#sgraph .gftab.fb{border-color:rgba(96,165,250,.3);color:rgba(96,165,250,.5);}
+#sgraph .gftab.fb.on{border-color:#60a5fa;color:#60a5fa;background:rgba(96,165,250,.1);}
+#sgraph .gftab.fc{border-color:rgba(155,135,245,.3);color:rgba(155,135,245,.5);}
+#sgraph .gftab.fc.on{border-color:#9b87f5;color:#9b87f5;background:rgba(155,135,245,.1);}
+#sgraph .gftab-sep{width:1px;height:16px;background:rgba(255,255,255,.1);margin:0 4px;}
+#sgraph .glegend{margin-left:auto;display:flex;gap:8px;align-items:center;}
+#sgraph .gleg{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:.55rem;color:rgba(232,228,220,.3);}
+#sgraph .gleg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* canvas area */
+#sgraph .gcanvas{flex:1;min-height:0;position:relative;overflow:hidden;}
+#sgraph #gsvg{width:100%;height:100%;cursor:grab;}
+#sgraph #gsvg:active{cursor:grabbing;}
+
+/* tooltip */
+#sgraph .gtooltip{
+  position:absolute;pointer-events:none;
+  background:rgba(12,21,32,.96);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:10px 14px;
+  font-family:'DM Mono',monospace;font-size:.65rem;
+  max-width:260px;z-index:100;
+  opacity:0;transition:opacity .15s;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+#sgraph .gtooltip.vis{opacity:1;}
+#sgraph .gtt-name{font-size:.8rem;font-weight:600;margin-bottom:4px;color:#e8e4dc;}
+#sgraph .gtt-cluster{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+#sgraph .gtt-desc{font-size:.68rem;color:rgba(232,228,220,.6);line-height:1.55;margin-bottom:6px;}
+#sgraph .gtt-plans{display:flex;gap:4px;flex-wrap:wrap;}
+#sgraph .gtt-plan{font-size:.58rem;padding:1px 7px;border-radius:8px;border:1px solid;}
+
+/* ── node counter panel ── */
+#gcounter{
+  margin-left:auto;flex-shrink:0;
+  display:flex;align-items:stretch;gap:0;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;overflow:hidden;
+  font-family:'DM Mono',monospace;
+}
+.gctr-block{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px 14px;gap:1px;
+  border-right:1px solid rgba(255,255,255,.07);
+  position:relative;transition:background .25s;
+  min-width:68px;
+}
+.gctr-block:last-child{border-right:none;}
+.gctr-block.active{background:var(--gcb);}
+.gctr-num{
+  font-size:1.5rem;font-weight:500;line-height:1;
+  color:rgba(232,228,220,.2);
+  transition:color .4s,transform .3s;
+}
+.gctr-block.active .gctr-num{color:var(--gcc);}
+.gctr-num.bump{animation:numBump .35s cubic-bezier(.4,0,.2,1);}
+@keyframes numBump{0%{transform:scale(1);}40%{transform:scale(1.35);}100%{transform:scale(1);}}
+.gctr-label{
+  font-size:.5rem;text-transform:uppercase;letter-spacing:.12em;
+  color:rgba(232,228,220,.22);white-space:nowrap;
+}
+.gctr-block.active .gctr-label{color:var(--gcc);opacity:.7;}
+.gctr-bar{
+  position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--gcc);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .6s cubic-bezier(.4,0,.2,1);
+}
+.gctr-block.active .gctr-bar{transform:scaleX(1);}
+.gctr-total{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px 14px;gap:1px;min-width:68px;
+  background:rgba(255,255,255,.03);
+}
+.gctr-total .gctr-num{font-size:1.5rem;color:rgba(232,228,220,.55);}
+.gctr-total .gctr-label{color:rgba(232,228,220,.22);}
+#sgraph .gfire-icon{font-size:.75rem;margin-right:2px;display:inline-block;transition:transform .15s;}
+#sgraph .gftab:hover .gfire-icon{transform:scale(1.3) rotate(-10deg);}
+#sgraph .gftab.on .gfire-icon{animation:fireflicker .4s ease-in-out infinite alternate;}
+@keyframes fireflicker{from{transform:scale(1) rotate(-5deg);}to{transform:scale(1.2) rotate(5deg);}}
+#sgraph #gfire-status{transition:all .2s;}
+
+/* ── service legend panel ── */
+/* ── legend overlay ── */
+#glegend-panel{
+  position:absolute;
+  top:14px; right:14px;
+  z-index:50;
+  display:flex;flex-direction:column;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;
+  background:rgba(8,15,26,.97);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  width:268px;
+  box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05);
+  overflow:hidden;
+  transition:box-shadow .2s;
+}
+#glegend-panel:hover{box-shadow:0 12px 48px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.09);}
+/* height transitions on body only — header stays visible */
+#glegend-body{
+  overflow-y:auto;overflow-x:hidden;
+  max-height:0;
+  transition:max-height .32s cubic-bezier(.4,0,.2,1), opacity .22s;
+  opacity:0;
+  padding:0;
+}
+#glegend-panel.expanded #glegend-body{
+  max-height:calc(100vh - 220px);
+  opacity:1;
+}
+#glegend-body::-webkit-scrollbar{width:3px;}
+#glegend-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px;}
+/* drag handle / toggle header */
+#glegend-toggle{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;
+  cursor:grab;
+  background:rgba(255,255,255,.03);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  user-select:none;
+  flex-shrink:0;
+}
+#glegend-toggle:active{cursor:grabbing;}
+#glegend-toggle:hover{background:rgba(255,255,255,.06);}
+.glp-drag{font-size:.7rem;color:rgba(255,255,255,.18);flex-shrink:0;letter-spacing:1px;}
+.glp-title{
+  font-family:'DM Mono',monospace;font-size:.58rem;
+  text-transform:uppercase;letter-spacing:.12em;
+  color:rgba(232,228,220,.65);flex:1;
+}
+.glp-toggle-btn{
+  font-family:'DM Mono',monospace;font-size:.65rem;
+  color:rgba(232,228,220,.3);flex-shrink:0;
+  background:none;border:none;cursor:pointer;padding:0 2px;
+  transition:color .15s, transform .22s;
+  line-height:1;
+}
+#glegend-panel.expanded .glp-toggle-btn{transform:rotate(180deg);}
+.glp-toggle-btn:hover{color:rgba(232,228,220,.7);}
+/* plan group heading */
+.glp-plan-head{
+  font-family:'DM Mono',monospace;font-size:.55rem;
+  text-transform:uppercase;letter-spacing:.14em;
+  padding:8px 12px 4px;
+  display:flex;align-items:center;gap:6px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  position:sticky;top:0;z-index:2;
+  background:rgba(8,15,26,.98);
+}
+.glp-plan-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+/* service rows */
+.glp-row{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:6px 12px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background .1s;
+}
+.glp-row:hover{background:rgba(255,255,255,.05);}
+.glp-row:last-child{border-bottom:none;}
+.glp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.glp-text{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;}
+.glp-name{
+  font-family:'DM Mono',monospace;font-size:.66rem;
+  color:rgba(232,228,220,.88);line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.glp-why{font-size:.68rem;color:rgba(232,228,220,.42);line-height:1.5;}
+.glp-locked{font-family:'DM Mono',monospace;font-size:.52rem;color:rgba(248,113,113,.65);margin-top:1px;}
+</style>
+
+<div class="gh" style="align-items:flex-start;">
+  <div>
+    <span class="stag stag-violet" style="margin:0 0 3px;">Service Dependency Graph</span>
+    <h2>All Azure Services — Clusters, Dependencies &amp; Plan Coverage</h2>
+    <p style="margin-top:2px;">drag nodes · scroll to zoom · click to inspect · fire a plan to animate</p>
+  </div>
+
+  <!-- ── Node counter ── -->
+  <div id="gcounter">
+    <div class="gctr-block" id="gctr-a" style="--gcb:rgba(34,199,146,.08);--gcc:#22c792;">
+      <div class="gctr-num" id="gctr-num-a">0</div>
+      <div class="gctr-label">Plan A</div>
+      <div class="gctr-bar"></div>
+    </div>
+    <div class="gctr-block" id="gctr-b" style="--gcb:rgba(96,165,250,.08);--gcc:#60a5fa;">
+      <div class="gctr-num" id="gctr-num-b">0</div>
+      <div class="gctr-label">Plan B adds</div>
+      <div class="gctr-bar"></div>
+    </div>
+    <div class="gctr-block" id="gctr-c" style="--gcb:rgba(155,135,245,.08);--gcc:#9b87f5;">
+      <div class="gctr-num" id="gctr-num-c">0</div>
+      <div class="gctr-label">Plan C adds</div>
+      <div class="gctr-bar"></div>
+    </div>
+    <div class="gctr-total">
+      <div class="gctr-num" id="gctr-num-total">0</div>
+      <div class="gctr-label">In plan</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="gfilter">
+  <span style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(232,228,220,.22);margin-right:4px;">View</span>
+  <button class="gftab all on" onclick="gFilter('all')">All</button>
+  <div class="gftab-sep"></div>
+  <span style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(232,228,220,.22);margin-right:4px;margin-left:4px;">Animate plan</span>
+  <button class="gftab fa" onclick="gFirePlan('A')">
+    <span class="gfire-icon">🔥</span> Plan A
+  </button>
+  <button class="gftab fb" onclick="gFirePlan('B')">
+    <span class="gfire-icon">🔥</span> Plan B
+  </button>
+  <button class="gftab fc" onclick="gFirePlan('C')">
+    <span class="gfire-icon">🔥</span> Plan C
+  </button>
+  <div id="gfire-status" style="font-family:'DM Mono',monospace;font-size:.58rem;color:rgba(232,228,220,.3);margin-left:8px;min-width:160px;"></div>
+  <div class="glegend">
+    <div class="gleg"><div class="gleg-dot" style="background:#60a5fa;"></div>Consumer</div>
+    <div class="gleg"><div class="gleg-dot" style="background:#fca5a5;"></div>Gateway</div>
+    <div class="gleg"><div class="gleg-dot" style="background:#6ee7b7;"></div>Adapters</div>
+    <div class="gleg"><div class="gleg-dot" style="background:#c4b5fd;"></div>Orchestration</div>
+    <div class="gleg"><div class="gleg-dot" style="background:#fbbf24;"></div>Data</div>
+    <div class="gleg"><div class="gleg-dot" style="background:#f87171;"></div>Identity</div>
+    <div class="gleg"><div class="gleg-dot" style="background:#94a3b8;"></div>Platform</div>
+  </div>
+</div>
+
+<div class="gcanvas">
+  <svg id="gsvg"></svg>
+  <div class="gtooltip" id="gtooltip"></div>
+
+  <!-- ── Service legend overlay ── -->
+  <div id="glegend-panel" class="">
+    <div id="glegend-toggle">
+      <span class="glp-drag">⣿</span>
+      <span class="glp-title" id="glp-title">Plan services ▸ fire a plan</span>
+      <button class="glp-toggle-btn" onclick="gLegendToggle(event)" title="expand / collapse">▾</button>
+    </div>
+    <div id="glegend-body">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+(function(){
+// ── DATA ──────────────────────────────────────────────────────────────────────
+var CLUSTERS = {
+  consumer:    {label:'Consumer',   color:'#60a5fa', bg:'rgba(96,165,250,.06)',  stroke:'rgba(96,165,250,.2)'},
+  gateway:     {label:'API Gateway',color:'#fca5a5', bg:'rgba(232,83,58,.06)',   stroke:'rgba(232,83,58,.2)'},
+  adapters:    {label:'Adapters',   color:'#6ee7b7', bg:'rgba(34,199,146,.06)', stroke:'rgba(34,199,146,.2)'},
+  orch:        {label:'Orchestration',color:'#c4b5fd',bg:'rgba(155,135,245,.06)',stroke:'rgba(155,135,245,.2)'},
+  data:        {label:'Data Tier',  color:'#fbbf24', bg:'rgba(245,166,35,.06)',  stroke:'rgba(245,166,35,.2)'},
+  identity:    {label:'Identity & AI',color:'#f87171',bg:'rgba(248,113,113,.06)',stroke:'rgba(248,113,113,.2)'},
+  platform:    {label:'Platform',   color:'#94a3b8', bg:'rgba(100,116,139,.06)', stroke:'rgba(100,116,139,.2)'},
+};
+
+// azure:true = Azure native service shown in legend; azure:false = DGTP app code
+var NODES = [
+  // ── Consumer ─────────────────────────────────────────── azure:false = DGTP code
+  {id:'portal',   cluster:'consumer', label:'GoSXM Portal',        azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. Citizen-facing web app hosted on ASE v3. Authenticates via Entra External ID.'},
+  {id:'bff',      cluster:'consumer', label:'GoSXM BFF',            azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. Backend-For-Frontend proxy — holds APIM subscription key so browser never handles credentials.'},
+  // azure:true = Azure native services
+  {id:'afd-std',  cluster:'consumer', label:'Azure Front Door Standard',  azure:true, plans:['A'],     locked:false, desc:'CDN + basic WAF core rules. Routes and protects citizen traffic at the edge. No private link origins.'},
+  {id:'afd-prem', cluster:'consumer', label:'Azure Front Door Premium',   azure:true, plans:['B','C'], locked:true,  desc:'WAF Premium + private link origins. Citizen data never traverses public internet to backend servers.'},
+  {id:'appgw-std',cluster:'consumer', label:'Application Gateway Standard v2', azure:true, plans:['A'], locked:false, desc:'TLS termination and HTTP/S routing. Single instance, no WAF, no zone spread.'},
+  {id:'appgw-waf',cluster:'consumer', label:'Application Gateway WAF v2', azure:true, plans:['B','C'], locked:false, desc:'Enterprise WAF with full OWASP rule set. Plan B: ×1 medium. Plan C: ×3 zone-redundant.'},
+
+  // ── API Gateway ─────────────────────────────────────── all Azure native
+  {id:'apim-dev', cluster:'gateway',  label:'Azure API Management Developer',  azure:true, plans:['A'],     locked:false, desc:'Full 8-stage inbound pipeline — JWT validate, scope, rate limit, IP filter, request validate, correlation ID, MI auth, route. No SLA.'},
+  {id:'apim-std', cluster:'gateway',  label:'Azure API Management Standard v2',azure:true, plans:['B'],     locked:false, desc:'99.95% SLA. Auto-scales 1–5 units. VNet integration for private endpoint access to adapters.'},
+  {id:'apim-prem',cluster:'gateway',  label:'Azure API Management Premium v2', azure:true, plans:['C'],     locked:false, desc:'99.99% SLA. Multi-region capable. Zone-redundant. Auto-scale 1–10 units.'},
+
+  // ── Adapters cluster ─── DGTP application code + Azure ASE (azure native)
+  {id:'casbes',   cluster:'adapters', label:'CasbesAdapter (.NET 8)',  azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. SOAP/StUF-BG client to Civil Registry (Centric). Only SOAP call in the platform. Runs on ASE.'},
+  {id:'coci',     cluster:'adapters', label:'CociAdapter (.NET 8)',    azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. REST/JSON to Chamber of Commerce (Qualogy). Issues CRIB numbers. Runs on ASE.'},
+  {id:'siah',     cluster:'adapters', label:'SiahAdapter (.NET 8)',    azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. OData v4 to Tax CRM — §16.2 OIDC citizen token enforced before every query. Runs on ASE.'},
+  {id:'bliss',    cluster:'adapters', label:'BlissAdapter (.NET 8)',   azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. OData v4 to TEATT Dynamics 365 licensing tenant. Runs on ASE.'},
+  {id:'vromi',    cluster:'adapters', label:'VromiAdapter (.NET 8)',   azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. ArcGIS REST to VROMI permits. ArcGIS tokens auto-refreshed in-process every 90 min. Runs on the App Service / ASE compute.'},
+  {id:'kadaster', cluster:'adapters', label:'KadasterAdapter (.NET 8)',azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. ⚠ OI-08 BLOCKED. APIM mock policy returns stub data. Config swap on resolution — zero code change.'},
+  {id:'ase-a',    cluster:'adapters', label:'App Service  P0v3 ×2 (Dev)',   azure:true, plans:['A'],     locked:false, desc:'Multi-tenant App Service — 1 frontend + 1 backend P0v3 plan. Hosts all .NET 8 adapter apps. No ASE stamp, no HA. Synthetic data only.'},
+  {id:'ase-b',    cluster:'adapters', label:'App Service  P1v3 ×2 (Staging)',azure:true, plans:['B'],     locked:false, desc:'P1v3 plans, autoscale 1→2. Twice the cores/RAM of Dev. Load-testable HA headroom for UAT. No ASE stamp.'},
+  {id:'ase-c',    cluster:'adapters', label:'Dual ASE v3  I1v2 (Prod)',     azure:true, plans:['C'],     locked:false, desc:'Production dual App Service Environment — isolated frontend + backend stamps. 1 instance each (Minimal) → 2 each, HA (Standard/Full). Linux I1v2.'},
+
+  // ── Orchestration ─── mixed
+  {id:'outbox',   cluster:'orch',     label:'Outbox Relay (DGTP code)',azure:false, plans:['A','B','C'], locked:false, desc:'DGTP application. Timer-triggered Azure Function. Picks up PENDING rows from dbo.OutboxMessages and publishes to Service Bus.'},
+  {id:'sb-std',   cluster:'orch',     label:'Azure Service Bus Standard',   azure:true, plans:['A','B'], locked:false, desc:'Shared messaging infrastructure. Hosts dgtp.registry.events topic with 2 active subscriptions. 10M ops/mo included.'},
+  {id:'sb-prem',  cluster:'orch',     label:'Service Bus Standard (Prod)',  azure:true, plans:['C'],     locked:false, desc:'Production Service Bus Standard. Outbox relay + dgtp.registry.events; dgtp.service-requests topic added for the Phase 2 workflow engine. Premium (geo-DR) only if a future RTO SLA requires it.'},
+  {id:'eventgrid',cluster:'orch',     label:'Azure Event Grid',             azure:true, plans:['A','B','C'], locked:false, desc:'Consumption-based event fan-out and routing. Plan A: 10M events/mo. Plan B: 50M. Plan C: 200M.'},
+  {id:'logicapps-cons',cluster:'orch',label:'Azure Logic Apps Consumption',  azure:true, plans:['A'],     locked:false, desc:'Pay-per-execution workflow orchestration. No VNet integration. Suitable for low-volume dev flows.'},
+  {id:'logicapps-std', cluster:'orch',label:'Azure Logic Apps Standard WS1', azure:true, plans:['B','C'], locked:false, desc:'Always-on hosting plan. VNet integration required to reach private endpoints in staging and prod.'},
+
+  // ── Data ─── all Azure native
+  {id:'sql-a',    cluster:'data',     label:'Azure SQL DB  GP serverless',  azure:true, plans:['A'],     locked:false, desc:'Serverless, auto-pause. Hosts dbo.OutboxMessages, dbo.AuditLog (7yr LTR), dbo.ReferenceCode. Dev pays only for active hours.'},
+  {id:'sql-b',    cluster:'data',     label:'Azure SQL DB  GP 2 vCore',     azure:true, plans:['B'],     locked:false, desc:'Provisioned 2 vCore, always warm. Staging-grade, load-testable with no cold-start. Same schema as Dev.'},
+  {id:'sql-c',    cluster:'data',     label:'Azure SQL DB  GP 2–6 vCore',   azure:true, plans:['C'],     locked:false, desc:'Production: 6 vCore serverless cap (Minimal) · 2 vCore provisioned (Standard) · 4 vCore zone-redundant (Full). 7yr audit LTR.'},
+  {id:'cosmos-sv',cluster:'data',     label:'Azure Cosmos DB  Serverless',  azure:true, plans:['A'],     locked:false, desc:'CMF cache. citizen-profiles 15min TTL, business-records 5min, address-cache 24h. Bills per RU — optimal for Go-Live traffic.'},
+  {id:'cosmos-b', cluster:'data',     label:'Azure Cosmos DB  Autoscale 10k',azure:true, plans:['B'],   locked:false, desc:'Autoscale 1k→10k RU/s. Bills for max-burst hour only. Single region. Same TTL schema as Plan A.'},
+  {id:'cosmos-c', cluster:'data',     label:'Azure Cosmos DB  Autoscale 50k',azure:true, plans:['C'],   locked:false, desc:'Autoscale 10k→50k RU/s. Single-write + multi-region reads. 7-day continuous backup.'},
+  {id:'kv-std',   cluster:'data',     label:'Azure Key Vault  Standard',    azure:true, plans:['A'],     locked:false, desc:'All adapter secrets and API keys via Managed Identity only (Dev + Prod-Minimal). CASBES 90d rotation, ArcGIS tokens 2h auto-refresh.'},
+  {id:'kv-prem',  cluster:'data',     label:'Azure Key Vault  Premium HSM', azure:true, plans:['B','C'], locked:false, desc:'FIPS 140-2 Level 2 HSM-backed keys (Staging + Prod Standard/Full). Replaces a dedicated Managed HSM at far lower cost. Required for PCI-DSS scope on e-Payment.'},
+  {id:'storage-lrs',cluster:'data',   label:'Azure Storage  LRS',           azure:true, plans:['A','B'], locked:false, desc:'Locally-redundant storage. WORM policy validation for non-production environments.'},
+  {id:'storage-gzrs',cluster:'data',  label:'Azure Storage  WORM (LRS→GRS)', azure:true, plans:['C'],     locked:true,  desc:'7-year WORM immutability. Redundancy grows with sizing: LRS (Minimal) → ZRS (Standard) → GRS + DR region (Full). LOCKED — compliance obligation under EA Ordinance and GDPR.'},
+
+  // ── Identity ─── external national eID (not an Azure resource)
+  {id:'eid',      cluster:'identity', label:'National eID (external)',         azure:false, plans:['A','B','C'], locked:false, desc:'Citizens authenticate via the national eID, federated into the apps over OIDC/SAML. Issues citizen tokens; §16.2 enforced at adapter level. No Azure CIAM cost — supersedes ADR-004 / Entra External ID. The chatbot LLM and its search/RAG index are likewise external providers — no Azure-side AI is funded in any environment.'},
+
+  // ── Platform ─── all Azure native
+  {id:'fw-basic', cluster:'platform', label:'Azure Firewall  Standard (shared)',azure:true, plans:['A','B','C'], locked:true, desc:'ONE shared Azure Firewall Standard instance ($912/mo) hosted in the Production subscription and used by every environment. Stateful L4 filtering + threat intelligence. The single largest line in the estimate.'},
+  {id:'bastion-b',cluster:'platform', label:'Azure Bastion  Basic',           azure:true, plans:['A'],     locked:false, desc:'Browser-based RDP/SSH to VMs and ASE hosts. No public IPs required on any compute resource.'},
+  {id:'bastion-std',cluster:'platform',label:'Azure Bastion  Standard',       azure:true, plans:['B','C'], locked:true,  desc:'Native client + file transfer for UAT admin support sessions. LOCKED — required admin access pattern.'},
+  {id:'vpn',      cluster:'platform', label:'Azure VPN Gateway',              azure:true, plans:['B','C'], locked:false, desc:'On-premises connectivity for registry integration testing and admin access. Plan B: VpnGw1 single. Plan C: ×2 active-active.'},
+  {id:'law',      cluster:'platform', label:'Azure Monitor  Log Analytics',   azure:true, plans:['A','B','C'], locked:false, desc:'Central log ingestion for all services. Plan A: 2 GB/day. Plan B: 10 GB/day. Plan C: 40 GB/day with DCR sampling.'},
+  {id:'appins',   cluster:'platform', label:'Azure Application Insights',     azure:true, plans:['A','B','C'], locked:false, desc:'APM telemetry across all 11 adapter Function Apps. No PII logged. Plan A: 1 GB/day. Plan C: 10 GB/day adaptive sampling.'},
+  {id:'defender', cluster:'platform', label:'Microsoft Defender for Cloud',   azure:true, plans:['A','B','C'], locked:true,  desc:'Security posture baseline per ADR-009. Plan A: Server P1. Plans B+C: Full P2 (Servers, App Service, Storage, SQL).'},
+  {id:'sentinel', cluster:'platform', label:'Microsoft Sentinel',             azure:true, plans:['B','C'],     locked:false, desc:'Threat detection and SIEM. Plan B: 10 GB/day advisory mode. Plan C: 40 GB/day. Phases: monitor → SOAR advisory → GoSXM handover.'},
+  {id:'purview',  cluster:'platform', label:'Microsoft Purview',              azure:true, plans:['A','B','C'], locked:false, desc:'Data classification and sensitivity labelling. Plan A: 1 CU. Plan B: 4 CU. Plan C: 8 CU.'},
+  {id:'dns',      cluster:'platform', label:'Azure Private DNS Zones  ×12',   azure:true, plans:['A','B','C'], locked:false, desc:'12 private DNS zones for all private endpoint name resolution. Required by every service. Unchanged across all plans.'},
+  {id:'terraform',cluster:'platform', label:'Azure DevOps  + Bicep IaC',     azure:true, plans:['A','B','C'], locked:false, desc:'CI/CD pipelines for app and infra. Bicep is the canonical IaC. 2-person prod gate. Zero manual portal clicks in staging/prod (NFR-07).'},
+];
+
+var EDGES = [
+  {s:'portal',t:'bff',w:3},{s:'bff',t:'afd-std',w:2},{s:'bff',t:'afd-prem',w:2},
+  {s:'afd-std',t:'appgw-std',w:2},{s:'afd-prem',t:'appgw-waf',w:2},
+  {s:'appgw-std',t:'apim-dev',w:2},{s:'appgw-waf',t:'apim-std',w:2},{s:'appgw-waf',t:'apim-prem',w:2},
+  {s:'apim-dev',t:'casbes',w:2},{s:'apim-dev',t:'coci',w:2},{s:'apim-dev',t:'siah',w:2},
+  {s:'apim-dev',t:'bliss',w:2},{s:'apim-dev',t:'vromi',w:2},{s:'apim-dev',t:'kadaster',w:2},
+  {s:'apim-std',t:'casbes',w:2},{s:'apim-std',t:'coci',w:2},{s:'apim-std',t:'siah',w:2},
+  {s:'apim-std',t:'bliss',w:2},{s:'apim-std',t:'vromi',w:2},{s:'apim-std',t:'kadaster',w:2},
+  {s:'apim-prem',t:'casbes',w:2},{s:'apim-prem',t:'coci',w:2},{s:'apim-prem',t:'siah',w:2},
+  {s:'apim-prem',t:'bliss',w:2},{s:'apim-prem',t:'vromi',w:2},{s:'apim-prem',t:'kadaster',w:2},
+  {s:'ase-a',t:'casbes',w:1},{s:'ase-a',t:'coci',w:1},{s:'ase-a',t:'siah',w:1},
+  {s:'ase-a',t:'bliss',w:1},{s:'ase-a',t:'vromi',w:1},{s:'ase-a',t:'kadaster',w:1},
+  {s:'ase-b',t:'casbes',w:1},{s:'ase-b',t:'coci',w:1},{s:'ase-b',t:'siah',w:1},
+  {s:'ase-b',t:'bliss',w:1},{s:'ase-b',t:'vromi',w:1},{s:'ase-b',t:'kadaster',w:1},
+  {s:'ase-c',t:'casbes',w:1},{s:'ase-c',t:'coci',w:1},{s:'ase-c',t:'siah',w:1},
+  {s:'ase-c',t:'bliss',w:1},{s:'ase-c',t:'vromi',w:1},{s:'ase-c',t:'kadaster',w:1},
+  {s:'casbes',t:'outbox',w:2},{s:'coci',t:'outbox',w:2},{s:'siah',t:'outbox',w:2},
+  {s:'bliss',t:'outbox',w:2},{s:'vromi',t:'outbox',w:2},
+  {s:'outbox',t:'sb-std',w:3},{s:'outbox',t:'sb-prem',w:3},
+  {s:'sb-std',t:'sql-a',w:2},{s:'sb-std',t:'sql-b',w:2},{s:'sb-prem',t:'sql-c',w:2},
+  {s:'sb-std',t:'cosmos-sv',w:2},{s:'sb-std',t:'cosmos-b',w:2},{s:'sb-prem',t:'cosmos-c',w:2},
+  {s:'eventgrid',t:'sb-std',w:1},{s:'eventgrid',t:'sb-prem',w:1},
+  {s:'logicapps-cons',t:'eventgrid',w:1},{s:'logicapps-std',t:'eventgrid',w:1},
+  {s:'eid',t:'portal',w:3},
+  {s:'eid',t:'siah',w:2},
+  {s:'sql-a',t:'outbox',w:1},{s:'sql-b',t:'outbox',w:1},{s:'sql-c',t:'outbox',w:1},
+  {s:'kv-std',t:'casbes',w:1},{s:'kv-std',t:'coci',w:1},{s:'kv-prem',t:'casbes',w:1},{s:'kv-prem',t:'coci',w:1},
+  {s:'fw-basic',t:'apim-dev',w:1},{s:'fw-basic',t:'apim-std',w:1},{s:'fw-basic',t:'apim-prem',w:1},
+  {s:'law',t:'appins',w:1},{s:'law',t:'sentinel',w:1},
+  {s:'appins',t:'casbes',w:1},{s:'appins',t:'coci',w:1},{s:'appins',t:'siah',w:1},
+  {s:'defender',t:'law',w:1},
+  {s:'dns',t:'apim-dev',w:1},{s:'dns',t:'apim-std',w:1},{s:'dns',t:'apim-prem',w:1},
+  {s:'terraform',t:'ase-a',w:1},{s:'terraform',t:'ase-b',w:1},{s:'terraform',t:'ase-c',w:1},
+];
+
+var PLAN_COLORS = {A:'#22c792', B:'#60a5fa', C:'#9b87f5'};
+
+// ── COUNT nodes per plan ─────────────────────────────────────────────────────
+// Plan A = nodes that have 'A' in plans (A-only)
+// Plan B adds = nodes that have 'B' but NOT 'A'
+// Plan C adds = nodes that have 'C' but NOT 'A' and NOT 'B'
+// Counter and legend only count Azure native services (azure:true)
+var azureNodes = NODES.filter(function(n){ return n.azure; });
+var countA     = azureNodes.filter(function(n){ return n.plans.includes('A'); }).length;
+var countBonly = azureNodes.filter(function(n){ return n.plans.includes('B') && !n.plans.includes('A'); }).length;
+var countConly = azureNodes.filter(function(n){ return n.plans.includes('C') && !n.plans.includes('B') && !n.plans.includes('A'); }).length;
+
+function animateNum(elId, target, duration){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  var start = 0, startTime = null;
+  function step(ts){
+    if(!startTime) startTime = ts;
+    var p = Math.min((ts - startTime) / duration, 1);
+    var ease = 1 - Math.pow(1 - p, 3); // cubic ease-out
+    el.textContent = Math.round(ease * target);
+    if(p < 1) requestAnimationFrame(step);
+    else { el.textContent = target; el.classList.add('bump'); setTimeout(function(){ el.classList.remove('bump'); }, 400); }
+  }
+  requestAnimationFrame(step);
+}
+
+function setCounter(plan){
+  // Reset all blocks
+  ['a','b','c'].forEach(function(p){
+    document.getElementById('gctr-'+p).classList.remove('active');
+  });
+  var totalEl = document.getElementById('gctr-num-total');
+
+  if(plan === 'all'){
+    animateNum('gctr-num-a', countA, 600);
+    animateNum('gctr-num-b', countBonly, 700);
+    animateNum('gctr-num-c', countConly, 800);
+    totalEl.textContent = azureNodes.length;
+    return;
+  }
+  var planSets = {A:['A'], B:['A','B'], C:['A','B','C']};
+  var active = planSets[plan];
+  var total = NODES.filter(function(n){ return active.some(function(p){ return n.plans.includes(p); }); }).length;
+
+  // Which blocks to highlight
+  if(plan === 'A'){ document.getElementById('gctr-a').classList.add('active'); }
+  if(plan === 'B'){ document.getElementById('gctr-a').classList.add('active'); document.getElementById('gctr-b').classList.add('active'); }
+  if(plan === 'C'){ document.getElementById('gctr-a').classList.add('active'); document.getElementById('gctr-b').classList.add('active'); document.getElementById('gctr-c').classList.add('active'); }
+
+  animateNum('gctr-num-a', plan==='A'?countA:countA, 500);
+  animateNum('gctr-num-b', plan==='B'||plan==='C'?countBonly:countBonly, 600);
+  animateNum('gctr-num-c', plan==='C'?countConly:countConly, 700);
+  animateNum('gctr-num-total', total, 550);
+}
+var PLAN_STROKE = {A:'rgba(34,199,146,.35)', B:'rgba(96,165,250,.35)', C:'rgba(155,135,245,.35)'};
+
+function nodeMinPlan(plans){
+  if(plans.includes('A'))return 'A';
+  if(plans.includes('B'))return 'B';
+  return 'C';
+}
+
+// ── BUILD D3 GRAPH ─────────────────────────────────────────────────────────
+var currentFilter = 'all';
+
+var svg = d3.select('#gsvg');
+var container = document.querySelector('#sgraph .gcanvas');
+
+var W = container.clientWidth, H = container.clientHeight;
+svg.attr('viewBox',[0,0,W,H]);
+
+// defs
+var defs = svg.append('defs');
+// arrow markers per plan + grey
+['A','B','C','grey'].forEach(function(p){
+  var col = p==='grey' ? 'rgba(255,255,255,.12)' : PLAN_COLORS[p];
+  defs.append('marker')
+    .attr('id','arr-'+p)
+    .attr('viewBox','0 0 10 10').attr('refX',22).attr('refY',5)
+    .attr('markerWidth',4).attr('markerHeight',4).attr('orient','auto-start-reverse')
+    .append('path').attr('d','M0 0L10 5L0 10z')
+    .attr('fill', p==='grey'?'rgba(255,255,255,.15)':col)
+    .attr('opacity', p==='grey'?0.3:0.5);
+});
+
+// cluster hulls group
+var hullG = svg.append('g').attr('class','hulls');
+var linkG = svg.append('g').attr('class','links');
+var nodeG = svg.append('g').attr('class','nodes');
+
+// build simulation nodes/links
+var nodeMap = {};
+NODES.forEach(function(n){ nodeMap[n.id]=n; });
+
+// assign initial cluster positions
+var clusterCenters = {
+  consumer:  {x:W*0.15, y:H*0.2},
+  gateway:   {x:W*0.35, y:H*0.2},
+  adapters:  {x:W*0.6,  y:H*0.25},
+  orch:      {x:W*0.72, y:H*0.55},
+  data:      {x:W*0.45, y:H*0.7},
+  identity:  {x:W*0.18, y:H*0.68},
+  platform:  {x:W*0.15, y:H*0.45},
+};
+
+NODES.forEach(function(n){
+  var c = clusterCenters[n.cluster];
+  n.x = c.x + (Math.random()-0.5)*80;
+  n.y = c.y + (Math.random()-0.5)*80;
+});
+
+var links = EDGES.map(function(e){
+  return {source:nodeMap[e.s], target:nodeMap[e.t], w:e.w};
+}).filter(function(e){return e.source && e.target;});
+
+// simulation
+var sim = d3.forceSimulation(NODES)
+  .force('link', d3.forceLink(links).id(function(d){return d.id;}).distance(function(d){
+    return d.source.cluster === d.target.cluster ? 60 : 120;
+  }).strength(0.4))
+  .force('charge', d3.forceManyBody().strength(-180))
+  .force('cluster', function(alpha){
+    NODES.forEach(function(n){
+      var c = clusterCenters[n.cluster];
+      n.vx += (c.x - n.x) * alpha * 0.08;
+      n.vy += (c.y - n.y) * alpha * 0.08;
+    });
+  })
+  .force('collision', d3.forceCollide(28))
+  .force('center', d3.forceCenter(W/2, H/2).strength(0.03));
+
+// draw links
+var linkSel = linkG.selectAll('line').data(links).enter().append('line')
+  .attr('stroke', function(d){
+    var sp = nodeMinPlan(d.source.plans), tp = nodeMinPlan(d.target.plans);
+    var p = sp > tp ? sp : tp;
+    return sp === tp ? PLAN_COLORS[sp] : 'rgba(255,255,255,.1)';
+  })
+  .attr('stroke-opacity', 0.2)
+  .attr('stroke-width', function(d){return d.w*0.6;})
+  .attr('marker-end', function(d){
+    var sp = nodeMinPlan(d.source.plans);
+    return 'url(#arr-grey)';
+  });
+
+// draw nodes
+var nodeSel = nodeG.selectAll('g.node').data(NODES).enter().append('g')
+  .attr('class','node')
+  .style('cursor','pointer')
+  .call(d3.drag()
+    .on('start', function(event,d){
+      if(!event.active) sim.alphaTarget(0.3).restart();
+      d.fx=d.x; d.fy=d.y;
+    })
+    .on('drag', function(event,d){d.fx=event.x; d.fy=event.y;})
+    .on('end', function(event,d){
+      if(!event.active) sim.alphaTarget(0);
+      d.fx=null; d.fy=null;
+    })
+  )
+  .on('mouseenter', showTooltip)
+  .on('mousemove', moveTooltip)
+  .on('mouseleave', hideTooltip);
+
+// node circle
+nodeSel.append('circle')
+  .attr('r', function(d){ return d.locked ? 14 : 11; })
+  .attr('fill', function(d){
+    return d.azure ? CLUSTERS[d.cluster].color + '22' : 'rgba(255,255,255,.03)';
+  })
+  .attr('stroke', function(d){
+    return d.azure ? CLUSTERS[d.cluster].color : 'rgba(255,255,255,.2)';
+  })
+  .attr('stroke-width', function(d){ return d.locked ? 2.5 : 1.2; })
+  .attr('stroke-dasharray', function(d){
+    if(d.locked) return '3,2';
+    if(!d.azure) return '4,3'; // DGTP app code = dashed
+    return 'none';
+  });
+
+// DGTP label smaller + dimmer
+nodeSel.append('text')
+  .attr('text-anchor','middle').attr('dy','-14')
+  .attr('font-family','DM Mono,monospace').attr('font-size',6.5)
+  .attr('fill','rgba(255,255,255,.2)').attr('fill-opacity',0.8)
+  .text(function(d){ return d.azure ? '' : 'app'; });
+
+// plan badge (small dot, top-right of circle)
+nodeSel.append('circle')
+  .attr('r', 4)
+  .attr('cx', 9).attr('cy', -9)
+  .attr('fill', function(d){ return PLAN_COLORS[nodeMinPlan(d.plans)]; })
+  .attr('stroke', '#0c1520')
+  .attr('stroke-width', 1.5);
+
+// lock icon
+nodeSel.filter(function(d){return d.locked;})
+  .append('text')
+  .attr('text-anchor','middle').attr('dy','0.35em')
+  .attr('font-size',8).attr('fill','rgba(255,255,255,.4)')
+  .text('🔒');
+
+// node label
+nodeSel.append('text')
+  .attr('text-anchor','middle')
+  .attr('dy', function(d){ return d.locked ? 26 : 22; })
+  .attr('font-family','DM Mono,monospace')
+  .attr('font-size', 8.5)
+  .attr('fill', function(d){ return d.azure ? CLUSTERS[d.cluster].color : 'rgba(255,255,255,.35)'; })
+  .attr('fill-opacity', 0.85)
+  .text(function(d){return d.label;});
+
+// ── tick ───────────────────────────────────────────────────────────────────
+sim.on('tick', function(){
+  // constrain to canvas
+  NODES.forEach(function(n){
+    n.x = Math.max(40, Math.min(W-40, n.x));
+    n.y = Math.max(40, Math.min(H-40, n.y));
+  });
+
+  linkSel
+    .attr('x1',function(d){return d.source.x;})
+    .attr('y1',function(d){return d.source.y;})
+    .attr('x2',function(d){return d.target.x;})
+    .attr('y2',function(d){return d.target.y;});
+
+  nodeSel.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';});
+
+  // cluster hulls
+  drawHulls();
+});
+
+function drawHulls(){
+  var clusterPoints = {};
+  Object.keys(CLUSTERS).forEach(function(k){ clusterPoints[k]=[]; });
+  NODES.forEach(function(n){
+    if(n.visible !== false) clusterPoints[n.cluster].push([n.x, n.y]);
+  });
+
+  var hullData = Object.keys(CLUSTERS).map(function(k){
+    var pts = clusterPoints[k];
+    if(pts.length < 3){
+      // pad to at least 3 points
+      while(pts.length < 3) pts.push([pts[0][0]+(Math.random()-0.5)*20, pts[0][1]+(Math.random()-0.5)*20]);
+    }
+    var hull = d3.polygonHull(pts);
+    return {id:k, hull:hull, cluster:CLUSTERS[k]};
+  }).filter(function(h){return h.hull;});
+
+  var hulls = hullG.selectAll('path.hull').data(hullData, function(d){return d.id;});
+  hulls.enter().append('path').attr('class','hull')
+    .merge(hulls)
+    .attr('d', function(d){
+      var pts = d.hull.map(function(p){return [p[0],p[1]];});
+      return 'M'+pts.map(function(p){return p[0]+','+p[1];}).join('L')+'Z';
+    })
+    .attr('fill', function(d){ return d.cluster.bg; })
+    .attr('stroke', function(d){ return d.cluster.stroke; })
+    .attr('stroke-width', 1)
+    .attr('stroke-dasharray','4,3')
+    .attr('opacity', 0.7);
+
+  hulls.exit().remove();
+}
+
+// ── ZOOM + PAN ──────────────────────────────────────────────────────────────
+var zoom = d3.zoom().scaleExtent([0.3, 3]).on('zoom', function(event){
+  hullG.attr('transform', event.transform);
+  linkG.attr('transform', event.transform);
+  nodeG.attr('transform', event.transform);
+});
+svg.call(zoom);
+
+// ── TOOLTIP ─────────────────────────────────────────────────────────────────
+var tooltip = document.getElementById('gtooltip');
+function showTooltip(event, d){
+  var plans = d.plans;
+  var planHTML = plans.map(function(p){
+    var col = PLAN_COLORS[p];
+    var stroke = PLAN_STROKE[p];
+    return '<span class="gtt-plan" style="color:'+col+';border-color:'+stroke+';background:'+col+'18;">Plan '+p+'</span>';
+  }).join('');
+
+  tooltip.innerHTML =
+    '<div class="gtt-name">'+(d.locked?'🔒 ':'')+d.label+'</div>'+
+    '<div class="gtt-cluster" style="color:'+CLUSTERS[d.cluster].color+'">'+CLUSTERS[d.cluster].label+'</div>'+
+    '<div class="gtt-desc">'+d.desc+'</div>'+
+    '<div class="gtt-plans">'+planHTML+'</div>';
+  tooltip.classList.add('vis');
+  moveTooltip(event);
+}
+function moveTooltip(event){
+  var rect = container.getBoundingClientRect();
+  var x = event.clientX - rect.left + 12;
+  var y = event.clientY - rect.top - 10;
+  if(x + 270 > container.clientWidth) x = event.clientX - rect.left - 280;
+  tooltip.style.left = x+'px';
+  tooltip.style.top  = y+'px';
+}
+function hideTooltip(){ tooltip.classList.remove('vis'); }
+
+// ── FILTER (show/hide) ───────────────────────────────────────────────────────
+window.gFilter = function(f){
+  stopFireAnimation();
+  currentFilter = f;
+  document.querySelectorAll('#sgraph .gftab').forEach(function(b){ b.classList.remove('on'); });
+  var map = {'all':'.all','A':'.fa','B':'.fb','C':'.fc'};
+  if(map[f]) document.querySelector('#sgraph .gftab'+map[f]).classList.add('on');
+
+  var planSets = {'all':['A','B','C'],'A':['A'],'B':['A','B'],'C':['A','B','C']};
+  var active = planSets[f] || ['A','B','C'];
+
+  // Reset all to base state
+  nodeSel.each(function(d){
+    var show = active.some(function(p){return d.plans.includes(p);});
+    d.visible = show;
+    d3.select(this).selectAll('circle').attr('filter',null);
+    d3.select(this).transition().duration(300).attr('opacity', show ? 1 : 0.07);
+  });
+  linkSel.each(function(d){
+    var show = active.some(function(p){return d.source.plans.includes(p);}) &&
+               active.some(function(p){return d.target.plans.includes(p);});
+    d3.select(this).attr('filter',null).transition().duration(300)
+      .attr('stroke-opacity', show ? 0.25 : 0.03)
+      .attr('stroke', show ? (f==='all' ? 'rgba(255,255,255,.15)' : PLAN_COLORS[f]) : 'rgba(255,255,255,.06)');
+  });
+  document.getElementById('gfire-status').textContent = '';
+  setCounter(f);
+  buildLegend(f);
+};
+
+// ── FIRE ANIMATION SYSTEM ────────────────────────────────────────────────────
+var fireTimer = null;
+var fireRAF   = null;
+var _fireRunning = false;
+
+function stopFireAnimation(){
+  _fireRunning = false;
+  if(fireTimer){ clearTimeout(fireTimer); fireTimer=null; }
+  if(fireRAF){ cancelAnimationFrame(fireRAF); fireRAF=null; }
+  // Remove all fire filters/glows
+  svg.selectAll('.fire-particle').remove();
+  svg.selectAll('.fire-ring').remove();
+  nodeSel.each(function(d){
+    d3.select(this).selectAll('circle.fire-glow').remove();
+    d3.select(this).selectAll('circle').attr('filter',null).attr('stroke-width', d.locked ? 2.5 : 1.5);
+  });
+  linkSel.attr('filter',null).attr('stroke-width', function(d){return d.w*0.6;});
+}
+
+// SVG filter for fire glow
+(function(){
+  if(defs.select('#fire-glow-A').empty()){
+    ['A','B','C'].forEach(function(p){
+      var col = p==='A'?'34,199,146': p==='B'?'96,165,250':'155,135,245';
+      var f = defs.append('filter').attr('id','fire-glow-'+p).attr('x','-80%').attr('y','-80%').attr('width','260%').attr('height','260%');
+      f.append('feGaussianBlur').attr('in','SourceGraphic').attr('stdDeviation','4').attr('result','blur');
+      f.append('feColorMatrix').attr('in','blur').attr('type','matrix')
+        .attr('values','1 0 0 0 '+parseFloat(col.split(',')[0])/255+' 0 1 0 0 '+parseFloat(col.split(',')[1])/255+' 0 0 1 0 '+parseFloat(col.split(',')[2])/255+' 0 0 0 18 -7')
+        .attr('result','colored');
+      var merge = f.append('feMerge');
+      merge.append('feMergeNode').attr('in','colored');
+      merge.append('feMergeNode').attr('in','colored');
+      merge.append('feMergeNode').attr('in','SourceGraphic');
+    });
+  }
+  // Edge streak filter
+  if(defs.select('#streak-A').empty()){
+    ['A','B','C'].forEach(function(p){
+      var f2 = defs.append('filter').attr('id','streak-'+p).attr('x','-20%').attr('y','-200%').attr('width','140%').attr('height','500%');
+      f2.append('feGaussianBlur').attr('in','SourceGraphic').attr('stdDeviation','2 1').attr('result','blur');
+      var col2 = p==='A'?'34,199,146': p==='B'?'96,165,250':'155,135,245';
+      f2.append('feColorMatrix').attr('in','blur').attr('type','matrix')
+        .attr('values','1 0 0 0 '+parseFloat(col2.split(',')[0])/255+' 0 1 0 0 '+parseFloat(col2.split(',')[1])/255+' 0 0 1 0 '+parseFloat(col2.split(',')[2])/255+' 0 0 0 12 -4');
+    });
+  }
+})();
+
+window.gFirePlan = function(plan){
+  stopFireAnimation();
+  _fireRunning = true;
+
+  setCounter(plan);
+  buildLegend(plan);
+  // Update tab UI
+  document.querySelectorAll('#sgraph .gftab').forEach(function(b){ b.classList.remove('on'); });
+  var tabMap = {'A':'.fa','B':'.fb','C':'.fc'};
+  document.querySelector('#sgraph .gftab'+tabMap[plan]).classList.add('on');
+
+  var planSets = {'A':['A'],'B':['A','B'],'C':['A','B','C']};
+  var active = planSets[plan];
+  var planColor = PLAN_COLORS[plan];
+
+  // Step 1: dim everything
+  nodeSel.transition().duration(250).attr('opacity', function(d){
+    return active.some(function(p){return d.plans.includes(p);}) ? 0.15 : 0.04;
+  });
+  linkSel.transition().duration(250)
+    .attr('stroke-opacity', function(d){
+      var show = active.some(function(p){return d.source.plans.includes(p);}) &&
+                 active.some(function(p){return d.target.plans.includes(p);});
+      return show ? 0.08 : 0.02;
+    })
+    .attr('stroke','rgba(255,255,255,.08)');
+
+  // Build ordered fire sequence: consumer → gateway → adapters → orch → data → identity → platform
+  var clusterOrder = ['consumer','gateway','adapters','orch','data','identity','platform'];
+  var fireNodes = [];
+  clusterOrder.forEach(function(cl){
+    NODES.forEach(function(n){
+      if(n.cluster === cl && active.some(function(p){return n.plans.includes(p);})){
+        fireNodes.push(n);
+      }
+    });
+  });
+
+  // Build fire edges ordered by source node order
+  var fireEdges = links.filter(function(l){
+    return active.some(function(p){return l.source.plans.includes(p);}) &&
+           active.some(function(p){return l.target.plans.includes(p);});
+  });
+
+  var statusEl = document.getElementById('gfire-status');
+  var nodeDelay = 160; // ms per node
+  var edgeDelay = 80;
+
+  function fireNode(node, idx){
+    if(!_fireRunning) return;
+    var el = nodeSel.filter(function(d){return d.id === node.id;});
+
+    statusEl.textContent = '▶ ' + node.label;
+
+    // Reveal with fire glow
+    el.transition().duration(120).attr('opacity', 1);
+
+    // Fire glow circle — expands outward and fades
+    var g = el.node();
+    var gsel = d3.select(g);
+
+    // Pulse ring 1
+    gsel.append('circle').attr('class','fire-ring')
+      .attr('r', node.locked ? 14 : 11)
+      .attr('fill','none')
+      .attr('stroke', planColor)
+      .attr('stroke-width', 4)
+      .attr('opacity', 0.9)
+      .attr('pointer-events','none')
+      .transition().duration(700).ease(d3.easeCubicOut)
+      .attr('r', (node.locked ? 14 : 11) + 28)
+      .attr('stroke-width', 0.5)
+      .attr('opacity', 0)
+      .remove();
+
+    // Pulse ring 2 (delayed)
+    setTimeout(function(){
+      if(!_fireRunning) return;
+      gsel.append('circle').attr('class','fire-ring')
+        .attr('r', node.locked ? 16 : 13)
+        .attr('fill', planColor).attr('fill-opacity', 0.18)
+        .attr('pointer-events','none')
+        .transition().duration(500).ease(d3.easeCubicOut)
+        .attr('r', (node.locked ? 16 : 13) + 18)
+        .attr('fill-opacity', 0)
+        .remove();
+    }, 80);
+
+    // Sustained glow on the main circle
+    el.select('circle').attr('filter','url(#fire-glow-'+plan+')');
+
+    // Keep glow for a while then reduce
+    setTimeout(function(){
+      if(!_fireRunning) return;
+      el.select('circle').transition().duration(1200)
+        .attr('filter', null);
+    }, nodeDelay * (fireNodes.length - idx) + 800);
+  }
+
+  function fireEdge(edge, idx){
+    if(!_fireRunning) return;
+    var lsel = linkSel.filter(function(d){ return d===edge; });
+
+    lsel.transition().duration(200)
+      .attr('stroke', planColor)
+      .attr('stroke-opacity', 0.7)
+      .attr('stroke-width', (edge.w||1)*2.5)
+      .attr('filter','url(#streak-'+plan+')');
+
+    setTimeout(function(){
+      if(!_fireRunning) return;
+      lsel.transition().duration(800)
+        .attr('stroke-opacity', 0.35)
+        .attr('stroke-width', (edge.w||1)*1.5)
+        .attr('filter', null);
+    }, 400);
+  }
+
+  // Sequence: fire nodes first, then edges
+  fireNodes.forEach(function(n, i){
+    fireTimer = setTimeout(function(){ fireNode(n, i); }, 300 + i * nodeDelay);
+  });
+
+  var totalNodeTime = 300 + fireNodes.length * nodeDelay;
+
+  // Then fire edges (grouped by source cluster)
+  fireEdges.forEach(function(e, i){
+    fireTimer = setTimeout(function(){ fireEdge(e, i); }, totalNodeTime + i * edgeDelay);
+  });
+
+  // Final: all nodes bright, status done
+  var totalTime = totalNodeTime + fireEdges.length * edgeDelay + 800;
+  fireTimer = setTimeout(function(){
+    if(!_fireRunning) return;
+    statusEl.textContent = '✓ Plan ' + plan + ' — ' + fireNodes.length + ' services active';
+    nodeSel.filter(function(d){
+      return active.some(function(p){return d.plans.includes(p);});
+    }).transition().duration(400).attr('opacity',1);
+    linkSel.filter(function(d){
+      return active.some(function(p){return d.source.plans.includes(p);}) &&
+             active.some(function(p){return d.target.plans.includes(p);});
+    }).transition().duration(400)
+      .attr('stroke', planColor)
+      .attr('stroke-opacity', 0.3)
+      .attr('stroke-width', function(d){return (d.w||1)*1.2;});
+  }, totalTime);
+};
+
+// ── LEGEND PANEL ────────────────────────────────────────────────────────────
+var _legendOpen = false;
+
+window.gLegendToggle = function(e){
+  if(e) e.stopPropagation();
+  _legendOpen = !_legendOpen;
+  document.getElementById('glegend-panel').classList.toggle('expanded', _legendOpen);
+};
+
+// ── drag the legend overlay ──────────────────────────────────────────────────
+(function(){
+  var panel, isDragging=false, ox=0, oy=0, startX=0, startY=0;
+  document.addEventListener('DOMContentLoaded', function(){
+    panel = document.getElementById('glegend-panel');
+    var handle = document.getElementById('glegend-toggle');
+    if(!handle) return;
+    handle.addEventListener('mousedown', function(e){
+      if(e.target.classList.contains('glp-toggle-btn')) return;
+      isDragging = true;
+      var rect = panel.getBoundingClientRect();
+      var cRect = panel.parentElement.getBoundingClientRect();
+      ox = rect.left - cRect.left;
+      oy = rect.top  - cRect.top;
+      startX = e.clientX; startY = e.clientY;
+      panel.style.right = 'auto';
+      panel.style.left  = ox+'px';
+      panel.style.top   = oy+'px';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!isDragging) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      var cRect = panel.parentElement.getBoundingClientRect();
+      var nx = Math.max(0, Math.min(cRect.width  - panel.offsetWidth,  ox+dx));
+      var ny = Math.max(0, Math.min(cRect.height - panel.offsetHeight, oy+dy));
+      panel.style.left = nx+'px';
+      panel.style.top  = ny+'px';
+    });
+    document.addEventListener('mouseup', function(){ isDragging=false; });
+  });
+})();
+
+function buildLegend(plan){
+  var body = document.getElementById('glegend-body');
+  var titleEl = document.getElementById('glp-title');
+  var planSets = {'all':['A','B','C'],'A':['A'],'B':['A','B'],'C':['A','B','C']};
+  var active = planSets[plan] || ['A','B','C'];
+
+  // Update title
+  if(plan === 'all'){
+    titleEl.textContent = 'All ' + azureNodes.length + ' Azure services';
+  } else {
+    var total = azureNodes.filter(function(n){ return active.some(function(p){ return n.plans.includes(p); }); }).length;
+    titleEl.textContent = 'Plan ' + plan + ' — ' + total + ' services';
+  }
+
+  // Group nodes by their min plan within active
+  var planGroups = {};
+  if(plan === 'all'){
+    planGroups = {A:[], B:[], C:[]};
+    NODES.forEach(function(n){
+      if(!n.azure) return; // skip DGTP application code
+      var mp = nodeMinPlan(n.plans);
+      planGroups[mp].push(n);
+    });
+  } else {
+    // Show nodes grouped by which plan first introduces them
+    active.forEach(function(p){ planGroups[p] = []; });
+    NODES.forEach(function(n){
+      if(!active.some(function(p){ return n.plans.includes(p); })) return;
+      var mp = nodeMinPlan(n.plans);
+      // Clamp to the lowest active plan
+      if(!planGroups[mp]) mp = active[0];
+      planGroups[mp].push(n);
+    });
+  }
+
+  var planLabels = {A:'Plan A — Dev', B:'Plan B — Staging adds', C:'Plan C — Production adds'};
+  var planColors2 = {A:'#22c792', B:'#60a5fa', C:'#9b87f5'};
+
+  var html2 = '';
+  ['A','B','C'].forEach(function(p){
+    var group = planGroups[p];
+    if(!group || !group.length) return;
+    html2 += '<div class="glp-plan-head" style="color:' + planColors2[p] + ';">'
+           + '<div class="glp-plan-dot" style="background:' + planColors2[p] + ';"></div>'
+           + planLabels[p] + ' (' + group.length + ')'
+           + '</div>';
+    group.forEach(function(n){
+      var clColor = CLUSTERS[n.cluster].color;
+      var why = n.desc || '';
+      var isLocked = n.locked ? '<div class="glp-locked">🔒 locked in Plan C</div>' : '';
+      html2 += '<div class="glp-row">'
+             + '<div class="glp-dot" style="background:' + clColor + ';"></div>'
+             + '<div class="glp-text">'
+             + '<div class="glp-name">' + n.label + '</div>'
+             + (why ? '<div class="glp-why">' + why + '</div>' : '')
+             + isLocked
+             + '</div></div>';
+    });
+  });
+
+  body.innerHTML = html2;
+
+  // Auto-expand when a plan is fired
+  if(plan !== 'all' && !_legendOpen){
+    _legendOpen = true;
+    document.getElementById('glegend-panel').classList.add('expanded');
+  }
+}
+
+// initial view
+gFilter('all');
+buildLegend('all');
+// init counter with totals
+setTimeout(function(){ animateNum('gctr-num-a',countA,700); animateNum('gctr-num-b',countBonly,850); animateNum('gctr-num-c',countConly,1000); document.getElementById('gctr-num-total').textContent=NODES.length; }, 600);
+
+// handle resize
+window.addEventListener('resize', function(){
+  W = container.clientWidth; H = container.clientHeight;
+  svg.attr('viewBox',[0,0,W,H]);
+  clusterCenters = {
+    consumer:  {x:W*0.15, y:H*0.2},
+    gateway:   {x:W*0.35, y:H*0.2},
+    adapters:  {x:W*0.6,  y:H*0.25},
+    orch:      {x:W*0.72, y:H*0.55},
+    data:      {x:W*0.45, y:H*0.7},
+    identity:  {x:W*0.18, y:H*0.68},
+    platform:  {x:W*0.15, y:H*0.45},
+  };
+  sim.force('center', d3.forceCenter(W/2, H/2).strength(0.03));
+  sim.alpha(0.3).restart();
+});
+
+})();
+</script>
+
+</section>
+
+
+
+<!-- ══════════════ SLIDE 2 — LAYER STACK ══════════════ -->
+<section class="slide" id="s2">
+<div class="si">
+  <span class="stag stag-violet">Layer Stack</span>
+  <div class="rule" style="background:var(--violet);"></div>
+  <h2>7-Layer Architecture — All Three Plans</h2>
+  <p class="lead">Click any layer to see what each plan deploys, the rationale, and trade-offs.</p>
+
+  <div class="lstack" id="lstack" style="margin-top:1rem;">
+
+    <!-- L0 Consumer -->
+    <div class="layer" id="l0" style="--lc:#60a5fa;--lbg:rgba(96,165,250,.04);">
+      <div class="layer-head" onclick="toggleLayer('l0')">
+        <div class="layer-num">L0</div>
+        <div class="layer-title">Consumer &amp; Edge — Portal · CDN · WAF · Front Door</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">Edge shared from Prod sub ($0)</div>
+            <div class="lc-note">Dev reaches the portal through the shared Front Door + App Gateway hosted in Production. Host-header / path routing isolates non-prod traffic. No edge cost booked to Dev.</div>
+            <div class="lc-tradeoff">△ Confirm shared-edge traffic isolation</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">Edge shared from Prod sub ($0)</div>
+            <div class="lc-note">Same shared edge as Dev and Production. UAT validates routing and WAF policy on the shared front door before go-live.</div>
+            <div class="lc-tradeoff">△ Shared edge fronts all three environments</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">Azure Front Door + App Gateway WAF v2 <span class="badge-locked">LOCKED</span></div>
+            <div class="lc-note">Front Door Standard (Minimal/Standard) → Premium (Full). App Gateway WAF v2 with OWASP rules. Hosted once here and shared by every environment.</div>
+            <div class="lc-component" style="margin-top:6px;">Front Door Premium added at Full sizing</div>
+            <div class="lc-note">Premium adds private-link origins + edge DDoS for the Full sizing.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L1 APIM -->
+    <div class="layer" id="l1" style="--lc:#fca5a5;--lbg:rgba(232,83,58,.04);">
+      <div class="layer-head" onclick="toggleLayer('l1')">
+        <div class="layer-num">L1</div>
+        <div class="layer-title">API Gateway — Azure APIM · 8-Stage Pipeline · OpenAPI 3.0</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">Shared APIM (Prod sub) · $0</div>
+            <div class="lc-note">The full 8-stage policy pipeline (JWT validate · Scope · Rate limit · IP · Request validate · CorrelID · MI auth · Route) runs on the shared gateway. Dev consumes it; no cost booked here.</div>
+            <div class="lc-tradeoff">△ Shared with all envs · routing isolation required</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">Shared APIM (Prod sub) · $0</div>
+            <div class="lc-note">Same shared gateway and 8-stage pipeline. UAT validates the policies and OI-04 scope strings on the shared APIM before go-live.</div>
+            <div class="lc-tradeoff">△ Shared gateway — no separate Staging APIM</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">Azure APIM Basic v2 → Standard v2 (Full)</div>
+            <div class="lc-note">Basic v2 for Minimal/Standard; Standard v2 (99.95% SLA) at the Full sizing. Hosts the 8-stage pipeline for every environment. Private endpoint access to the adapters.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L2 Adapters -->
+    <div class="layer" id="l2" style="--lc:#6ee7b7;--lbg:rgba(34,199,146,.04);">
+      <div class="layer-head" onclick="toggleLayer('l2')">
+        <div class="layer-num">L2</div>
+        <div class="layer-title">Registry Adapters — .NET 8 apps · App Service / ASE v3 · 6 Adapters</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">App Service P0v3 ×2 (frontend + backend)</div>
+            <div class="lc-note">Multi-tenant App Service — no ASE stamp. All 6 adapter apps deploy here: CASBES · COCI · SIAH · BLISS · VROMI · KadasterMock. No HA. Synthetic data only.</div>
+            <div class="lc-tradeoff">△ No HA · single instance · no ASE isolation</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">App Service P1v3 ×2 · autoscale 1→2</div>
+            <div class="lc-note">Twice the cores/RAM of Dev, autoscaling to 2 instances under load test. Same 6 adapter apps. Load-testable HA headroom for UAT.</div>
+            <div class="lc-tradeoff">△ Autoscale HA · no ASE isolation stamp</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">Dual ASE v3 I1v2 — frontend + backend stamps</div>
+            <div class="lc-note">Network-isolated App Service Environment. 1 instance each (Minimal) → 2 each for HA (Standard/Full); Full spreads across availability zones. Linux I1v2.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L3 Orchestration -->
+    <div class="layer" id="l3" style="--lc:#c4b5fd;--lbg:rgba(155,135,245,.04);">
+      <div class="layer-head" onclick="toggleLayer('l3')">
+        <div class="layer-num">L3</div>
+        <div class="layer-title">Orchestration — CMF · Service Bus · Outbox Pattern · Event Grid</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">Service Bus Standard</div>
+            <div class="lc-note">10M operations/mo included. Outbox Pattern fully operational: dgtp.registry.events · audit-log-sub · cmf-cache-invalidation-sub.</div>
+            <div class="lc-component" style="margin-top:5px;">Event Grid · low volume</div>
+            <div class="lc-note">Consumption-based event fan-out.</div>
+            <div class="lc-tradeoff">△ Standard-tier messaging</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">Service Bus Standard</div>
+            <div class="lc-note">Same Outbox topology as Dev. Moderate event volume. DLQ monitor 15min.</div>
+            <div class="lc-component" style="margin-top:5px;">Event Grid · moderate volume</div>
+            <div class="lc-tradeoff">△ Standard tier — no Premium isolation</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">Service Bus Standard + Event Grid</div>
+            <div class="lc-note">Outbox relay + dgtp.registry.events. dgtp.service-requests topic added for the Phase 2 workflow engine. Event Grid fan-out scales with sizing.</div>
+            <div class="lc-tradeoff">△ Premium (geo-DR) only if a future RTO SLA requires it</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L4 Data -->
+    <div class="layer" id="l4" style="--lc:#fbbf24;--lbg:rgba(245,166,35,.04);">
+      <div class="layer-head" onclick="toggleLayer('l4')">
+        <div class="layer-num">L4</div>
+        <div class="layer-title">Data Tier — Azure SQL DB · Cosmos DB · Storage · Key Vault</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">Azure SQL DB GP serverless (auto-pause)</div>
+            <div class="lc-note">Full SQL surface area (Outbox, AuditLog 7yr LTR, ReferenceCode). Pays only for active hours. No ZRS, no geo-replica.</div>
+            <div class="lc-component" style="margin-top:5px;">Cosmos DB Serverless · Key Vault Standard · Storage LRS</div>
+            <div class="lc-note">Serverless Cosmos optimal for low dev traffic. KV Standard (no HSM). Synthetic data only.</div>
+            <div class="lc-tradeoff">△ No geo-DR · No HSM · LRS</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">Azure SQL DB GP provisioned 2 vCore (warm)</div>
+            <div class="lc-note">Always-warm, load-testable with no cold-start. Same schema as Dev. UAT-grade IOPS.</div>
+            <div class="lc-component" style="margin-top:5px;">Cosmos DB Autoscale ~1.5k RU/s · Key Vault Premium (HSM) · Storage ZRS</div>
+            <div class="lc-note">Autoscale Cosmos bills only for the busiest hour. KV Premium = prod key parity.</div>
+            <div class="lc-tradeoff">△ Single region · masked UAT data only</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">Azure SQL DB GP 2–6 vCore (zone-redundant at Full)</div>
+            <div class="lc-note">6 vCore serverless cap (Minimal) · 2 vCore provisioned (Standard) · 4 vCore zone-redundant (Full). 7yr audit LTR.</div>
+            <div class="lc-component" style="margin-top:5px;">Cosmos serverless / autoscale · Key Vault Premium (FIPS 140-2 L2) · Storage LRS→ZRS→GRS + WORM</div>
+            <div class="lc-locked">🔒 WORM 7yr immutable — compliance locked</div>
+            <div class="lc-tradeoff">△ Full adds GRS + DR region (netherlandsnorth)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L5 Identity -->
+    <div class="layer" id="l5" style="--lc:#f87171;--lbg:rgba(248,113,113,.04);">
+      <div class="layer-head" onclick="toggleLayer('l5')">
+        <div class="layer-num">L5</div>
+        <div class="layer-title">Identity — National eID · §16.2 (chatbot LLM + search are external)</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">National eID (external OIDC/SAML)</div>
+            <div class="lc-note">Citizens authenticate via the national eID, federated into the apps. §16.2 SIAH constraint enforced in the adapter. No Azure CIAM cost.</div>
+            <div class="lc-component" style="margin-top:5px;">Chatbot LLM + search — external</div>
+            <div class="lc-note">No Azure OpenAI, no AI Search. The chatbot and its RAG index are an external provider — $0 Azure-side AI.</div>
+            <div class="lc-tradeoff">△ External-LLM PII/DPIA clearance required before go-live</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">National eID (external) — same federation</div>
+            <div class="lc-note">Identical sign-in path on masked test identities. OI-04 scope strings validated in UAT.</div>
+            <div class="lc-component" style="margin-top:5px;">Chatbot LLM + search — external</div>
+            <div class="lc-note">No Azure-side AI funded — same as Dev and Production.</div>
+            <div class="lc-tradeoff">△ Confirm eID broker pattern for non-prod identities</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">National eID (external) — production federation</div>
+            <div class="lc-note">Provider-agnostic OIDC/SAML. §16.2 enforced. The eID's SLA + degraded-mode plan is a launch blocker.</div>
+            <div class="lc-component" style="margin-top:5px;">Chatbot LLM + search — external</div>
+            <div class="lc-note">Supersedes the locked AI tier (needs ADR). No Azure OpenAI / AI Search cost in any environment.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L6 Platform Foundation -->
+    <div class="layer" id="l6" style="--lc:#94a3b8;--lbg:rgba(100,116,139,.05);">
+      <div class="layer-head" onclick="toggleLayer('l6')">
+        <div class="layer-num">L6</div>
+        <div class="layer-title">Platform Foundation — Network · Security · Observability · IaC</div>
+        <div class="layer-arr">▶</div>
+      </div>
+      <div class="layer-body">
+        <div class="layer-inner">
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-a">Plan A — Dev</div>
+            <div class="lc-component">Edge shared from Prod sub ($0)</div>
+            <div class="lc-note">No dedicated Front Door / App Gateway / firewall. App Insights → central Log Analytics. Defender 3 plans (App Svc + SQL + KV).</div>
+            <div class="lc-component" style="margin-top:5px;">No Sentinel · investigations via central LAW + Defender alerts</div>
+            <div class="lc-note">Telemetry ships to the shared central workspace in the management subscription.</div>
+            <div class="lc-tradeoff">△ No Sentinel · no dedicated edge</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-b">Plan B — Staging</div>
+            <div class="lc-component">Edge shared from Prod sub ($0)</div>
+            <div class="lc-note">App Insights → central LAW (richer telemetry). Defender 5 plans (+ Storage + Containers). No separate Sentinel — central in Prod.</div>
+            <div class="lc-locked" style="margin-top:6px;">Edge + SIEM both shared</div>
+            <div class="lc-tradeoff">△ Shared from Prod / management subscriptions</div>
+          </div>
+          <div class="lc-cell">
+            <div class="lc-plan lc-plan-c">Plan C — Production</div>
+            <div class="lc-component">Azure Firewall Standard (shared) <span class="badge-locked">LOCKED</span></div>
+            <div class="lc-component" style="margin-top:5px;">Front Door + App Gateway WAF v2 + APIM (Basic v2 → Standard v2 at Full)</div>
+            <div class="lc-note" style="margin-top:4px;">Central Log Analytics + Sentinel (cost-optimized: free connectors + DCR). Defender full plans. Bastion Basic (Standard) / Std (Full) · VPN Gateway at Full (DR). Private DNS · Bicep IaC all environments.</div>
+            <div class="lc-locked">🔒 Firewall Standard · WORM storage · 7yr audit LTR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="sfooter" style="margin-top:1rem;">Scroll → LLD Component Mapping</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 3 — LLD → AZURE MAPPING ══════════════ -->
+<section class="slide" id="s3">
+<div class="si">
+  <span class="stag stag-teal">LLD → Azure</span>
+  <div class="rule" style="background:var(--teal);"></div>
+  <h2>LLD Component → Azure Service Mapping</h2>
+  <p class="lead">Every LLD-001 component mapped to its Azure service equivalent across all three plans. The LLD design is plan-agnostic — only the Azure service tier changes.</p>
+
+  <div class="lld-map" style="margin-top:1.2rem;font-size:.72rem;">
+    <div class="lm-head">LLD Component</div>
+    <div class="lm-head ha">Plan A · Dev</div>
+    <div class="lm-head hb">Plan B · Staging</div>
+    <div class="lm-head hc">Plan C · Production</div>
+
+    <div class="lm-grp">CONSUMER + GATEWAY (L0 + L1)</div>
+    <div class="lm-component">GoSXM BFF + Portal</div>
+    <div class="lm-cell a">App Service P0v3 ×2 (FE+BE)</div>
+    <div class="lm-cell b">App Service P1v3 ×2 · autoscale 1→2</div>
+    <div class="lm-cell c">Dual ASE v3 I1v2 (1× Min · 2× Std/Full)</div>
+
+    <div class="lm-component">APIM 8-Stage Pipeline</div>
+    <div class="lm-cell a">Shared APIM (Prod sub)</div>
+    <div class="lm-cell b">Shared APIM (Prod sub)</div>
+    <div class="lm-cell c">APIM Basic v2 (Min/Std) → Standard v2 (Full)</div>
+
+    <div class="lm-component">WAF + CDN (shared edge)</div>
+    <div class="lm-cell a">Shared from Prod sub ($0)</div>
+    <div class="lm-cell b">Shared from Prod sub ($0)</div>
+    <div class="lm-cell c">Front Door + App Gateway WAF v2 🔒 (FD Premium at Full)</div>
+
+    <div class="lm-grp">REGISTRY ADAPTERS (L2) — .NET 8 apps</div>
+    <div class="lm-component">CasbesAdapter · SOAP/StUF-BG</div>
+    <div class="lm-cell a">App Service P0v3 · Key Vault Standard · 10 req/s enforced client-side</div>
+    <div class="lm-cell b">App Service P1v3 · KV Premium · retry policy active</div>
+    <div class="lm-cell c">Dual ASE v3 · KV Std (Min) / Premium (Std/Full) · 10 req/s</div>
+
+    <div class="lm-component">CociAdapter · REST/JSON</div>
+    <div class="lm-cell a">App Service · KV Standard · Managed Identity auth</div>
+    <div class="lm-cell b">App Service · KV Premium · circuit breaker active</div>
+    <div class="lm-cell c">ASE v3 · KV Premium · Managed Identity</div>
+
+    <div class="lm-component">SiahAdapter · OData v4 CRM · §16.2</div>
+    <div class="lm-cell a">App Service · OIDC check enforced · KV SP credentials</div>
+    <div class="lm-cell b">App Service · §16.2 enforced · SIAH Managed Identity</div>
+    <div class="lm-cell c">ASE v3 · §16.2 enforced · Managed Identity · full audit</div>
+
+    <div class="lm-component">BlissAdapter · OData v4 TEATT</div>
+    <div class="lm-cell a">App Service · separate TEATT SP in Key Vault</div>
+    <div class="lm-cell b">App Service · separate TEATT SP · Managed Identity</div>
+    <div class="lm-cell c">ASE v3 · TEATT tenant isolated · KV Premium</div>
+
+    <div class="lm-component">VromiAdapter · ArcGIS REST</div>
+    <div class="lm-cell a">App Service · ArcGIS token cache · 90min refresh timer</div>
+    <div class="lm-cell b">App Service · in-process token cache · alert on 2× fail</div>
+    <div class="lm-cell c">ASE v3 · in-process token cache · alert on token fail</div>
+
+    <div class="lm-component">KadasterAdapter · ArcGIS ⚠ OI-08</div>
+    <div class="lm-cell a">APIM mock policy · KadasterAdapter stub in code · not called at runtime</div>
+    <div class="lm-cell b">APIM mock policy · config swap ready when OI-08 resolved</div>
+    <div class="lm-cell c">APIM mock → live swap on OI-08 resolution · same ArcGIS pattern as VROMI</div>
+
+    <div class="lm-grp">ORCHESTRATION + DATA (L3 + L4)</div>
+    <div class="lm-component">CMF Outbox Pattern</div>
+    <div class="lm-cell a">dbo.OutboxMessages in Azure SQL DB · timer relay · Service Bus Standard</div>
+    <div class="lm-cell b">dbo.OutboxMessages · relay · Service Bus Standard</div>
+    <div class="lm-cell c">dbo.OutboxMessages · relay · Service Bus Standard</div>
+
+    <div class="lm-component">dgtp.registry.events topic</div>
+    <div class="lm-cell a">Service Bus Standard · 3 subscriptions · DLQ monitor</div>
+    <div class="lm-cell b">Service Bus Standard · same topology · DLQ monitor 15min</div>
+    <div class="lm-cell c">Service Bus Standard · dgtp.service-requests (Phase 2) · Event Grid fan-out</div>
+
+    <div class="lm-component">Cosmos DB — CMF cache</div>
+    <div class="lm-cell a">Serverless · citizen-profiles 15min · business-records 5min · address-cache 24h</div>
+    <div class="lm-cell b">Autoscale ~1.5k RU/s · same TTLs · single region</div>
+    <div class="lm-cell c">Serverless (Min) / autoscale (Std/Full) · same TTLs · continuous backup</div>
+
+    <div class="lm-component">Azure SQL DB — dbo.AuditLog</div>
+    <div class="lm-cell a">SQL DB GP serverless · 7yr LTR · append-only · SHA-256 CitizenSubjectId</div>
+    <div class="lm-cell b">SQL DB GP 2 vCore warm · 7yr LTR · same compliance model</div>
+    <div class="lm-cell c">SQL DB GP 2–6 vCore · ZRS / GRS (Full) · 7yr LTR 🔒</div>
+
+    <div class="lm-component">Token + refdata cache</div>
+    <div class="lm-cell a">In-process · ArcGIS tokens 2h · refdata 1h · NO PII</div>
+    <div class="lm-cell b">In-process · same · no change</div>
+    <div class="lm-cell c">In-process · same · no change</div>
+
+    <div class="lm-grp">IDENTITY + SECURITY + OBSERVABILITY (L5 + L6)</div>
+    <div class="lm-component">National eID · OIDC/SAML</div>
+    <div class="lm-cell a">External federation · citizen tokens · §16.2 · no Azure CIAM cost</div>
+    <div class="lm-cell b">External federation · same · OI-04 scope strings Sprint 1</div>
+    <div class="lm-cell c">External federation · eID SLA + degraded-mode plan required</div>
+
+    <div class="lm-component">Key Vault — secrets + keys</div>
+    <div class="lm-cell a">KV Standard · Managed Identity only · CASBES 90d · COCI API key 90d</div>
+    <div class="lm-cell b">KV Premium (HSM) · same rotation schedule · private endpoint</div>
+    <div class="lm-cell c">KV Std (Min) / Premium FIPS 140-2 L2 (Std/Full) · PCI keys</div>
+
+    <div class="lm-component">Sentinel + Defender</div>
+    <div class="lm-cell a">No Sentinel · Defender 3 plans · App Insights → central LAW</div>
+    <div class="lm-cell b">No separate Sentinel · Defender 5 plans · central LAW</div>
+    <div class="lm-cell c">Central Sentinel (optimized: free connectors + DCR) + Defender full</div>
+
+    <div class="lm-component">CI/CD · IaC</div>
+    <div class="lm-cell a">Azure DevOps · Bicep IaC · 2-person prod gate</div>
+    <div class="lm-cell b">Same · Staging validates all prod patterns · review gate</div>
+    <div class="lm-cell c">Same pipeline · 4 subscriptions (dev/staging/prod/mgmt) · Bicep what-if artifacts</div>
+  </div>
+  <div class="sfooter" style="margin-top:1rem;">Scroll → Decision Matrix</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 4 — DECISION MATRIX ══════════════ -->
+<section class="slide" id="s4">
+<div class="si">
+  <span class="stag stag-blue">Decision Matrix</span>
+  <div class="rule" style="background:var(--blue);"></div>
+  <h2>Per-Component Plan Selection Guide</h2>
+  <p class="lead">Which plan fits which component — and what triggers an upgrade. Start with Plan A, monitor these signals, upgrade components individually.</p>
+
+  <div class="dmatrix" style="margin-top:1.2rem;">
+    <div class="dm-h">Component</div>
+    <div class="dm-h ha"><span class="dot-a"></span>Plan A · Dev</div>
+    <div class="dm-h hb"><span class="dot-b"></span>Plan B · Staging</div>
+    <div class="dm-h hc"><span class="dot-c"></span>Plan C · Production</div>
+
+    <div class="dm-row">
+      <div class="dm-cat">Front Door (shared)</div>
+      <div class="dm-cell a">Shared from Prod sub · $0<br/><span style="color:var(--amber);font-size:.65rem;">Dev rides the shared edge</span></div>
+      <div class="dm-cell b">Shared from Prod sub · $0<br/><span style="color:var(--amber);font-size:.65rem;">Staging rides the shared edge</span></div>
+      <div class="dm-cell c">Standard (Min/Std) → Premium (Full)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Compute</div>
+      <div class="dm-cell a">App Service P0v3 ×2 · no HA<br/><span style="color:var(--amber);font-size:.65rem;">Promote when: integration tests pass</span></div>
+      <div class="dm-cell b">App Service P1v3 ×2 · autoscale 1→2<br/><span style="color:var(--amber);font-size:.65rem;">Cut over when: UAT + load tests pass</span></div>
+      <div class="dm-cell c">Dual ASE v3 I1v2 · 1× (Min) → 2× HA (Std/Full)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">APIM (shared)</div>
+      <div class="dm-cell a">Shared from Prod sub · $0<br/><span style="color:var(--amber);font-size:.65rem;">8-stage pipeline applies to all envs</span></div>
+      <div class="dm-cell b">Shared from Prod sub · $0<br/><span style="color:var(--amber);font-size:.65rem;">Same shared gateway</span></div>
+      <div class="dm-cell c">Basic v2 (Min/Std) → Standard v2 (Full)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Azure SQL DB</div>
+      <div class="dm-cell a">GP serverless (auto-pause)<br/><span style="color:var(--amber);font-size:.65rem;">Upgrade when: cold-start hurts tests</span></div>
+      <div class="dm-cell b">GP provisioned 2 vCore (warm)<br/><span style="color:var(--amber);font-size:.65rem;">Upgrade when: load test needs more vCore</span></div>
+      <div class="dm-cell c">GP 2–6 vCore · zone-redundant (Full)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Cosmos DB</div>
+      <div class="dm-cell a">Serverless · pay per RU<br/><span style="color:var(--amber);font-size:.65rem;">Upgrade when: sustained &gt;400 RU/s average</span></div>
+      <div class="dm-cell b">Autoscale ~1.5k RU/s<br/><span style="color:var(--amber);font-size:.65rem;">Upgrade when: sustained peak rises</span></div>
+      <div class="dm-cell c">Serverless (Min) / autoscale (Std/Full)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Service Bus</div>
+      <div class="dm-cell a">Standard · 3 subscriptions<br/><span style="color:var(--amber);font-size:.65rem;">Outbox + DLQ monitor</span></div>
+      <div class="dm-cell b">Standard · same topology<br/><span style="color:var(--amber);font-size:.65rem;">DLQ monitor 15min</span></div>
+      <div class="dm-cell c">Standard + Event Grid fan-out · Phase 2 topic</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Firewall</div>
+      <div class="dm-cell a">Shared Standard (Prod sub) · $0<br/><span style="color:var(--amber);font-size:.65rem;">One instance fronts all envs</span></div>
+      <div class="dm-cell b">Shared Standard (Prod sub) · $0<br/><span style="color:var(--amber);font-size:.65rem;">Same shared instance</span></div>
+      <div class="dm-cell c">Azure Firewall Standard 🔒 · $912 · shared</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Storage</div>
+      <div class="dm-cell a">LRS · synthetic data<br/><span style="color:var(--amber);font-size:.65rem;">No WORM in Dev</span></div>
+      <div class="dm-cell b">ZRS · masked UAT data<br/><span style="color:var(--amber);font-size:.65rem;">WORM validated in UAT</span></div>
+      <div class="dm-cell c">LRS→ZRS→GRS + WORM 🔒 (7yr immutable)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Sentinel</div>
+      <div class="dm-cell a">None · Defender + central LAW<br/><span style="color:var(--amber);font-size:.65rem;">Telemetry to shared workspace</span></div>
+      <div class="dm-cell b">None · Defender 5 plans + central LAW<br/><span style="color:var(--amber);font-size:.65rem;">SIEM is central in Prod</span></div>
+      <div class="dm-cell c">Central Sentinel (optimized: free connectors + DCR)</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Identity</div>
+      <div class="dm-cell a">National eID (external) · $0<br/><span style="color:var(--amber);font-size:.65rem;">Synthetic test identities</span></div>
+      <div class="dm-cell b">National eID (external) · $0<br/><span style="color:var(--amber);font-size:.65rem;">Masked test identities</span></div>
+      <div class="dm-cell c">National eID · SLA + degraded-mode plan required</div>
+    </div>
+    <div class="dm-row">
+      <div class="dm-cat">Key Vault</div>
+      <div class="dm-cell a">Standard · no HSM<br/><span style="color:var(--amber);font-size:.65rem;">Synthetic secrets only</span></div>
+      <div class="dm-cell b">Premium (HSM-backed)<br/><span style="color:var(--amber);font-size:.65rem;">Prod key parity for UAT</span></div>
+      <div class="dm-cell c">Std (Min) / Premium FIPS 140-2 L2 (Std/Full)</div>
+    </div>
+  </div>
+  <div class="sfooter" style="margin-top:1rem;">Scroll → Locked Items</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 5 — LOCKED ITEMS ══════════════ -->
+<section class="slide" id="s5">
+<div class="si">
+  <span class="stag stag-violet">Locked Items</span>
+  <div class="rule" style="background:var(--rose);"></div>
+  <h2>Components That Cannot Be Reduced Further</h2>
+  <p class="lead">Seven components are locked in Production — they must remain regardless of optimisation pressure. Removing or downgrading any of them requires a formal ADR and, in most cases, regulatory or compliance sign-off.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:1.4rem;">
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 WORM 7-year Immutable Storage</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">Documents and the audit archive are written to write-once, read-many (WORM) blob storage with a 7-year retention lock — required for audit compliance under the EA Ordinance and GDPR. Removing WORM or shortening retention is a compliance violation.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">Production only · redundancy LRS→ZRS→GRS by sizing</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 7-year Audit Log (SQL LTR)</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">dbo.AuditLog is append-only with a 7-year long-term retention policy and SHA-256 scrambled citizen identifiers. The retention window and append-only behaviour are legal requirements that cannot be relaxed.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">All environments wire it · only Production holds real records</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 Azure Firewall Standard (shared)</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">One shared Azure Firewall Standard ($912/mo) is the network security boundary for every environment. It is in scope for the PCI-DSS e-Payment assessment, so its tier and rules cannot be reduced without a firewall-tier ADR and security sign-off.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">Hosted in Prod sub · shared by Dev / Staging / Production</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 Front Door + App Gateway WAF v2</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">The public citizen entry path runs through Front Door and an Application Gateway WAF v2 with the OWASP rule set. Disabling the WAF on a public government portal is not permitted. Front Door steps up to Premium in the Full sizing.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">Production edge · shared by all environments</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 Key Vault HSM-backed Keys</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">Key Vault Premium provides FIPS 140-2 Level 2 HSM-backed keys for the e-Payment and citizen-data flows. If PCI-DSS scope is confirmed, the HSM key-protection standard is mandatory and cannot drop to software-protected keys.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">Staging + Prod Standard/Full · Dev / Prod-Minimal use KV Standard</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 Defender for Cloud Baseline</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">Security baseline per ADR-009: Defender for App Service, SQL, Storage and Key Vault. Production runs the full plan set; it cannot be downgraded without an ADR-009 revision and security-team sign-off.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">Dev 3 plans · Staging 5 plans · Production full</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--rose);margin-bottom:12px;">🔒 National eID Degraded-Mode Plan</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;">Citizens sign in only through the national eID. Because there is no fallback Azure identity service, a documented eID SLA and a degraded-mode plan (what happens when eID is unavailable) is a launch blocker that cannot be skipped.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(248,113,113,.65);">External dependency · supersedes ADR-004 (Entra removed)</div>
+    </div>
+
+    <div style="border:1.5px solid rgba(245,166,35,.25);border-radius:10px;background:rgba(245,166,35,.04);padding:16px;">
+      <div style="font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);margin-bottom:12px;">⚠ ADRs Required Before Production</div>
+      <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-bottom:8px;"><strong style="color:var(--ink);">ADR — external-LLM removal:</strong> Azure OpenAI + AI Search removed; chatbot LLM + search are external. Supersedes the locked AI tier; needs PII / DPIA clearance.<br/><br/><strong style="color:var(--ink);">ADR — eID supersedes Entra (ADR-004):</strong> national eID replaces Entra External ID. <strong style="color:var(--ink);">ADR-011:</strong> shared-edge traffic isolation across Dev / Staging / Prod.</p>
+      <div style="font-family:var(--mono);font-size:.65rem;color:rgba(245,166,35,.65);">Also: PCI-DSS scope sign-off for e-Payment · firewall-tier (Standard vs Premium) decision</div>
+    </div>
+
+  </div>
+  <div class="sfooter" style="margin-top:1rem;">Scroll → Recommendation</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 6 — RECOMMENDATION ══════════════ -->
+<section class="slide" id="s6">
+<canvas class="bgc" id="bgc6"></canvas>
+<div class="si">
+  <span class="stag stag-teal">Recommendation</span>
+  <div class="rule" style="background:var(--teal);"></div>
+  <h2>Deploy Dev → Staging → Production.<br/><em style="font-style:italic;color:var(--teal);">Size Production on signal — not on schedule.</em></h2>
+
+  <div class="g2" style="margin-top:1.4rem;gap:1.6rem;">
+    <div>
+      <p class="lead" style="margin-bottom:1.2rem;">Sint Maarten has 50,000 citizens. The full three-environment estimate lands at <strong>$3,385–5,907/mo</strong> — a fraction of the earlier baseline — by sharing the edge, removing Azure-side AI, and using the national eID. Stand up Dev and Staging first, then launch Production at the Minimal sizing and grow to Standard (HA) and Full (DR) only as real load justifies it.</p>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="border-radius:8px;background:rgba(34,199,146,.06);border:1px solid rgba(34,199,146,.2);padding:12px 14px;">
+          <div style="font-family:var(--mono);font-size:.62rem;color:var(--plan-a);margin-bottom:5px;text-transform:uppercase;letter-spacing:.1em;">Phase 1 · Dev + Staging</div>
+          <p style="font-size:.8rem;color:var(--ink2);line-height:1.6;">Stand up Dev ($273) and Staging ($679) first. All 6 adapters live on App Service, Azure SQL DB, Cosmos and Service Bus. Validate the full request path and the shared edge on synthetic, then masked, data. Bicep modules are identical to Production.</p>
+        </div>
+        <div style="border-radius:8px;background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);padding:12px 14px;">
+          <div style="font-family:var(--mono);font-size:.62rem;color:var(--plan-b);margin-bottom:5px;text-transform:uppercase;letter-spacing:.1em;">Phase 2 · Production — Minimal</div>
+          <p style="font-size:.8rem;color:var(--ink2);line-height:1.6;">Launch Production at the Minimal sizing ($2,433): dual ASE v3 single-instance, serverless SQL, shared Firewall Standard + Front Door + APIM. Go live for 50k citizens, then collect real load — CPU, RU/s, request rates — for 3 months.</p>
+        </div>
+        <div style="border-radius:8px;background:rgba(155,135,245,.06);border:1px solid rgba(155,135,245,.2);padding:12px 14px;">
+          <div style="font-family:var(--mono);font-size:.62rem;color:var(--plan-c);margin-bottom:5px;text-transform:uppercase;letter-spacing:.1em;">Phase 3 · Production — Standard → Full</div>
+          <p style="font-size:.8rem;color:var(--ink2);line-height:1.6;">Grow only when the data justifies it: move to Standard ($3,419) for 2-instance HA and warm SQL, then to Full ($4,955) for Front Door Premium, APIM Standard v2, zone-redundant SQL and GRS + a DR region. Each step is a parameter change — no redesign.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);padding:16px;">
+        <div style="font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:10px;">Sizing triggers — monitor these</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--amber);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">△</span><span style="font-size:.78rem;color:var(--ink2);">ASE CPU sustained &gt;70% for 7 days → Minimal → Standard (2× per tier)</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--amber);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">△</span><span style="font-size:.78rem;color:var(--ink2);">Cosmos RU/s sustained high → serverless → autoscale</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--amber);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">△</span><span style="font-size:.78rem;color:var(--ink2);">SQL DB CPU &gt;70% or IOPS limit → raise vCore / provisioned</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--amber);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">△</span><span style="font-size:.78rem;color:var(--ink2);">Formal RTO/RPO SLA required → Standard → Full (GRS + DR region)</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--amber);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">△</span><span style="font-size:.78rem;color:var(--ink2);">Service Bus DLQ &gt;10 msgs/day → validate consumer health</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--rose);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">⚠</span><span style="font-size:.78rem;color:var(--ink2);">PCI-DSS scope confirmed → Key Vault Premium HSM on e-Payment</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--rose);font-family:var(--mono);font-size:.65rem;flex-shrink:0;margin-top:1px;">⚠</span><span style="font-size:.78rem;color:var(--ink2);">eID SLA / degraded-mode plan unsigned → blocks go-live</span></div>
+        </div>
+      </div>
+
+      <div style="border-radius:10px;background:rgba(34,199,146,.05);border:1px solid rgba(34,199,146,.2);padding:16px;">
+        <div style="font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--teal);margin-bottom:8px;">Components identical across all three plans</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">CASBES WCF adapter</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">CMF Outbox pattern</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">§16.2 SIAH constraint</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">SHA-256 AuditLog</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">7yr LTR retention</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">No-PII cache rule</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">National eID OIDC</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">Bicep IaC pipelines</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">2-person prod gate</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">Private DNS 12 zones</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">NFR-03 &lt;15min CMF</span>
+          <span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:3px;background:rgba(34,199,146,.08);border:1px solid rgba(34,199,146,.15);color:rgba(34,199,146,.75);">DLQ 15min monitor</span>
+        </div>
+      </div>
+
+      <div class="mrow" style="margin-top:0;">
+        <div class="met"><span class="mv mv-teal">$273</span><div class="ml">Dev / mo</div></div>
+        <div class="met"><span class="mv mv-blue">$679</span><div class="ml">Staging / mo</div></div>
+        <div class="met"><span class="mv mv-violet">$2.4–5k</span><div class="ml">Production / mo</div></div>
+        <div class="met"><span class="mv mv-rose">7</span><div class="ml">Locked items</div></div>
+        <div class="met"><span class="mv mv-amber">3</span><div class="ml">ADRs before Prod</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sfooter" style="margin-top:1.4rem;">DGTP-LLD-001 v1.0 · Part 2 Cloud Architecture · Government of Sint Maarten · Orangebd · June 2026 · costs refreshed 2026-06-01</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 11 — COST MODEL ══════════════ -->
+<section class="slide" id="scost" style="background:linear-gradient(145deg,rgba(34,199,146,.04) 0%,var(--bg) 50%,rgba(245,166,35,.04) 100%);">
+<div class="si">
+  <span class="stag stag-teal">Financial Summary</span>
+  <div class="rule" style="background:var(--amber);"></div>
+  <h2>Environment Cost Model</h2>
+  <p class="lead">Azure Retail <strong>list</strong> pricing per environment — East US, validated 2026-06-01. All edge + network is a shared service in the Production subscription, so Dev and Staging carry <strong>$0 edge</strong>. Running all three environments together costs <strong>$3,385–5,907/mo</strong> depending on the Production sizing chosen.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:1.2rem;">
+
+    <!-- DEV / Plan A -->
+    <div class="cost-card cost-card-a">
+      <div class="cost-card-head">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-family:var(--mono);font-size:2.2rem;font-weight:500;color:var(--plan-a);line-height:1;">A</span>
+          <div>
+            <div style="font-family:var(--mono);font-size:.57rem;text-transform:uppercase;letter-spacing:.12em;color:var(--plan-a);">Dev Environment</div>
+            <div style="font-family:var(--serif);font-size:.95rem;color:var(--ink);">Dev Sandbox</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-family:var(--serif);font-size:2rem;line-height:1;color:var(--plan-a);">$273<span style="font-size:.72rem;color:var(--ink3);">/mo</span></div>
+          <div style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);margin-top:2px;">~$3,276 / year · ▼ under $450–500 band</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--plan-a);">$0.005</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">per citizen/mo</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--teal);">P0v3</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">App Service ×2</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--rose);">None</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">HA / DR</span>
+          </div>
+        </div>
+      </div>
+      <div class="cost-card-body">
+        <div style="font-family:var(--mono);font-size:.53rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:8px;">Cost Breakdown</div>
+        <div class="cbar-row"><span class="cbar-lbl">Compute (App Service P0v3)</span><div class="cbar-track"><div class="cbar" style="width:42%;background:var(--plan-a);"></div></div><span class="cbar-val">$114</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Data (SQL+Cosmos+Blob+KV)</span><div class="cbar-track"><div class="cbar" style="width:38%;background:var(--blue);"></div></div><span class="cbar-val">$105</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Security &amp; Obs (Defender)</span><div class="cbar-track"><div class="cbar" style="width:15%;background:var(--violet);"></div></div><span class="cbar-val">$42</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Integration (SB+Event Grid)</span><div class="cbar-track"><div class="cbar" style="width:4%;background:var(--amber);"></div></div><span class="cbar-val">$12</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Edge &amp; Network</span><div class="cbar-track"><div class="cbar" style="width:0%;background:var(--rose);"></div></div><span class="cbar-val">$0</span></div>
+        <div style="font-family:var(--mono);font-size:.58rem;border-radius:5px;padding:5px 10px;margin-top:10px;background:rgba(34,199,146,.08);color:var(--plan-a);border:1px solid rgba(34,199,146,.2);">Phase 1 Go-Live · First 6–12 months</div>
+        <div style="font-family:var(--mono);font-size:.56rem;color:var(--ink3);margin-top:6px;line-height:1.5;">App Service P0v3 · SQL serverless (auto-pause) · edge shared in Prod sub · no Sentinel</div>
+      </div>
+    </div>
+
+    <!-- STAGING / Plan B -->
+    <div class="cost-card cost-card-b">
+      <div class="cost-card-head">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-family:var(--mono);font-size:2.2rem;font-weight:500;color:var(--plan-b);line-height:1;">B</span>
+          <div>
+            <div style="font-family:var(--mono);font-size:.57rem;text-transform:uppercase;letter-spacing:.12em;color:var(--plan-b);">Staging Environment</div>
+            <div style="font-family:var(--serif);font-size:.95rem;color:var(--ink);">Staging / UAT</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-family:var(--serif);font-size:2rem;line-height:1;color:var(--plan-b);">$679<span style="font-size:.72rem;color:var(--ink3);">/mo</span></div>
+          <div style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);margin-top:2px;">~$8,148 / year · ✓ in $650–750 band</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--plan-b);">$0.014</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">per citizen/mo</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--blue);">P1v3</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">autoscale 1→2</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--teal);">5 plans</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">Defender</span>
+          </div>
+        </div>
+      </div>
+      <div class="cost-card-body">
+        <div style="font-family:var(--mono);font-size:.53rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:8px;">Cost Breakdown</div>
+        <div class="cbar-row"><span class="cbar-lbl">Data (SQL 2vCore+Cosmos)</span><div class="cbar-track"><div class="cbar" style="width:51%;background:var(--blue);"></div></div><span class="cbar-val">$347</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Compute (App Service P1v3)</span><div class="cbar-track"><div class="cbar" style="width:33%;background:var(--plan-b);"></div></div><span class="cbar-val">$226</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Security &amp; Obs (5 Defender)</span><div class="cbar-track"><div class="cbar" style="width:13%;background:var(--violet);"></div></div><span class="cbar-val">$90</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Integration (SB+Event Grid)</span><div class="cbar-track"><div class="cbar" style="width:2%;background:var(--amber);"></div></div><span class="cbar-val">$16</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Edge &amp; Network</span><div class="cbar-track"><div class="cbar" style="width:0%;background:var(--rose);"></div></div><span class="cbar-val">$0</span></div>
+        <div style="font-family:var(--mono);font-size:.58rem;border-radius:5px;padding:5px 10px;margin-top:10px;background:rgba(96,165,250,.08);color:var(--plan-b);border:1px solid rgba(96,165,250,.2);">Pre-Prod / UAT · Months 6–18</div>
+        <div style="font-family:var(--mono);font-size:.56rem;color:var(--ink3);margin-top:6px;line-height:1.5;">Warm SQL 2-vCore + Cosmos autoscale + KV Premium · edge shared in Prod sub</div>
+      </div>
+    </div>
+
+    <!-- PRODUCTION / Plan C -->
+    <div class="cost-card cost-card-c">
+      <div class="cost-card-head">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-family:var(--mono);font-size:2.2rem;font-weight:500;color:var(--plan-c);line-height:1;">C</span>
+          <div>
+            <div style="font-family:var(--mono);font-size:.57rem;text-transform:uppercase;letter-spacing:.12em;color:var(--plan-c);">Production Environment</div>
+            <div style="font-family:var(--serif);font-size:.95rem;color:var(--ink);">Production</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-family:var(--serif);font-size:2rem;line-height:1;color:var(--plan-c);">$2,433–4,955<span style="font-size:.72rem;color:var(--ink3);">/mo</span></div>
+          <div style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);margin-top:2px;">Minimal $2,433 · Standard $3,419 · Full $4,955 /mo</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--plan-c);">$0.05–0.10</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">per citizen/mo</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--violet);">Dual</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">ASE v3 (HA)</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+            <span style="font-family:var(--serif);font-size:.88rem;color:var(--teal);">WORM</span>
+            <span style="font-family:var(--mono);font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">7-yr immutable</span>
+          </div>
+        </div>
+      </div>
+      <div class="cost-card-body">
+        <div style="font-family:var(--mono);font-size:.53rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:8px;">Cost Breakdown</div>
+        <div style="font-family:var(--mono);font-size:.5rem;color:var(--ink3);margin-bottom:6px;">Breakdown shown for <strong style="color:var(--plan-c);">Standard ($3,419)</strong> — the representative middle sizing</div>
+        <div class="cbar-row"><span class="cbar-lbl">Edge &amp; Network (shared)</span><div class="cbar-track"><div class="cbar" style="width:47%;background:var(--rose);"></div></div><span class="cbar-val">$1,596</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Compute (dual ASE v3 ×4)</span><div class="cbar-track"><div class="cbar" style="width:33%;background:var(--plan-c);"></div></div><span class="cbar-val">$1,128</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Data (SQL+Cosmos+Blob+KV)</span><div class="cbar-track"><div class="cbar" style="width:11%;background:var(--blue);"></div></div><span class="cbar-val">$392</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Security &amp; Obs (LAW+Sentinel)</span><div class="cbar-track"><div class="cbar" style="width:8%;background:var(--violet);"></div></div><span class="cbar-val">$275</span></div>
+        <div class="cbar-row"><span class="cbar-lbl">Integration (SB+Event Grid)</span><div class="cbar-track"><div class="cbar" style="width:1%;background:var(--amber);"></div></div><span class="cbar-val">$28</span></div>
+        <div style="font-family:var(--mono);font-size:.58rem;border-radius:5px;padding:5px 10px;margin-top:10px;background:rgba(155,135,245,.08);color:var(--plan-c);border:1px solid rgba(155,135,245,.2);">Live citizen environment · Minimal → Standard → Full</div>
+        <div style="font-family:var(--mono);font-size:.56rem;color:var(--ink3);margin-top:6px;line-height:1.5;">Firewall Standard $912 = single largest line · edge hosts all 3 envs · ASE RI would cut compute 35–40%</div>
+      </div>
+    </div>
+
+  </div><!-- end cost grid -->
+
+  <!-- Cost-optimisation decisions banner -->
+  <div style="background:rgba(245,166,35,.04);border:1px solid rgba(245,166,35,.18);border-radius:8px;padding:12px 18px;margin-top:1.2rem;display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+    <div>
+      <div style="font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);margin-bottom:3px;">Cost-optimisation decisions baked in</div>
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--serif);font-size:1.05rem;color:var(--ink2);">AI removed · eID identity · MHSM → KV Premium · edge shared</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:1px;height:32px;background:rgba(255,255,255,.1);flex-shrink:0;"></div>
+      <div>
+        <div style="font-family:var(--serif);font-size:1.2rem;color:var(--teal);">$0 AI</div>
+        <div style="font-family:var(--mono);font-size:.56rem;color:var(--ink3);">OpenAI + AI Search external · eID = no CIAM cost</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:1px;height:32px;background:rgba(255,255,255,.1);flex-shrink:0;"></div>
+      <div>
+        <div style="font-family:var(--serif);font-size:1.2rem;color:var(--teal);">−15–40%</div>
+        <div style="font-family:var(--mono);font-size:.56rem;color:var(--ink3);">real spend after EA/MCA discount (list shown)</div>
+      </div>
+    </div>
+    <div style="margin-left:auto;font-family:var(--mono);font-size:.55rem;color:var(--ink3);text-align:right;max-width:340px;line-height:1.6;">All edge + central LAW/Sentinel hosted once in the Prod subscription (ADR-011) — Dev/Staging carry $0 edge. ASE Reserved Instances would cut Prod compute a further 35–40% (not applied).</div>
+  </div>
+
+  <!-- All-env total row -->
+  <div style="display:flex;gap:12px;margin-top:1rem;align-items:center;flex-wrap:wrap;">
+    <span style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);">All 3 environments (Dev + Staging + Production):</span>
+    <span style="font-family:var(--serif);font-size:1.1rem;color:var(--ink);">$3,385–5,907/mo</span>
+    <span style="font-family:var(--mono);font-size:.62rem;color:var(--ink3);">·</span>
+    <span style="font-family:var(--mono);font-size:.62rem;color:var(--ink3);">$40,620–70,884/yr</span>
+    <span style="font-family:var(--mono);font-size:.6rem;color:var(--ink3);">(Prod = Minimal $3,385 · Standard $4,371 · Full $5,907 /mo)</span>
+    <span style="font-family:var(--mono);font-size:.6rem;padding:2px 8px;border-radius:4px;background:rgba(34,199,146,.07);border:1px solid rgba(34,199,146,.2);color:var(--teal);">Deploy Dev → Staging → Production, sized on demand</span>
+  </div>
+
+  <div class="sfooter">Azure Retail LIST prices · East US · major SKUs live-validated 2026-06-01 (prices.azure.com) · No EA/MCA discount · RI not applied · usage-driven lines (LA/Sentinel/Defender GB, Cosmos RU) are estimates</div>
+</div>
+</section>
+
+<!-- ══════════════ SLIDE 12 — ENVIRONMENT ARCHITECTURE ══════════════ -->
+<section class="slide" id="sdiag" style="background:linear-gradient(140deg,rgba(96,165,250,.04) 0%,var(--bg) 55%,rgba(155,135,245,.04) 100%);">
+<div class="si">
+  <span class="stag stag-blue">Architecture</span>
+  <div class="rule" style="background:var(--blue);"></div>
+  <h2>Environment Architecture Diagrams</h2>
+  <p class="lead">The same logical architecture — hub-and-spoke, dual ASE, APIM gateway, 6 registry adapters — at three different scale and security levels. Select an environment to see its data-flow diagram and specifications.</p>
+
+  <!-- Tab selector -->
+  <div class="env-tabs">
+    <button class="env-tab ta on" onclick="showEnvTab('dev',this)">Dev — Plan A</button>
+    <button class="env-tab tb" onclick="showEnvTab('stg',this)">Staging — Plan B</button>
+    <button class="env-tab tc" onclick="showEnvTab('prd',this)">Production — Plan C</button>
+    <span style="margin-left:auto;font-family:var(--mono);font-size:.56rem;color:var(--ink3);">LR = left-to-right flow · dotted = monitoring/protection lanes</span>
+  </div>
+
+  <!-- DEV pane -->
+  <div class="env-pane on" id="env-pane-dev">
+    <div class="mwrap" id="mwrap-dev">
+      <span style="font-family:var(--mono);font-size:.65rem;color:var(--ink3);">Rendering diagram…</span>
+    </div>
+    <div class="diag-meta">
+      <div>
+        <div style="font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--plan-a);margin-bottom:2px;">Dev — Plan A</div>
+        <div style="font-family:var(--serif);font-size:1.85rem;color:var(--plan-a);line-height:1;">$273<span style="font-size:.75rem;color:var(--ink3);">/mo</span></div>
+        <div style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);">$0.005 / citizen / month · ▼ under band</div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-top:4px;">
+        <div style="background:rgba(255,255,255,.04);padding:6px 12px;font-family:var(--mono);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">Specifications</div>
+        <div style="padding:0 12px 4px;">
+          <div class="diag-spec-row"><span class="diag-spec-key">SLA</span><span class="diag-spec-val" style="color:var(--amber);">Best-effort · no SLA</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">HA Level</span><span class="diag-spec-val" style="color:var(--rose);">None — single instance</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Redundancy</span><span class="diag-spec-val" style="color:var(--rose);">No AZ · no geo-DR · LRS</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Edge / Firewall</span><span class="diag-spec-val">Shared in Prod sub ($0)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Monitoring</span><span class="diag-spec-val">App Insights → central LAW · Defender ×3</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Compute</span><span class="diag-spec-val" style="color:var(--plan-a);">App Service P0v3 ×2 (FE+BE)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Azure SQL DB</span><span class="diag-spec-val" style="color:var(--plan-a);">GP serverless · auto-pause</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Cosmos DB</span><span class="diag-spec-val" style="color:var(--plan-a);">Serverless · pay/RU</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">APIM</span><span class="diag-spec-val" style="color:var(--amber);">Shared (Prod sub)</span></div>
+          <div class="diag-spec-row" style="border-bottom:none;"><span class="diag-spec-key">Compliance</span><span class="diag-spec-val">Synthetic data · pre-prod</span></div>
+        </div>
+      </div>
+      <div class="diag-analogy">"Renting a reliable car. <em style="color:var(--plan-a);font-style:normal;">Gets every citizen to their destination.</em> If it has a problem, there's a brief wait. You don't buy a fleet until you know the routes."</div>
+      <div style="background:rgba(34,199,146,.06);border:1px solid rgba(34,199,146,.2);border-radius:6px;padding:8px 12px;">
+        <div style="font-family:var(--mono);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:var(--plan-a);margin-bottom:4px;">Upgrade triggers from Dev</div>
+        <div style="font-size:.72rem;color:var(--ink2);line-height:1.6;">App Service CPU &gt;70% sustained · Cosmos &gt;400 RU/s avg · integration tests pass → promote to Staging</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGING pane -->
+  <div class="env-pane" id="env-pane-stg">
+    <div class="mwrap" id="mwrap-stg">
+      <span style="font-family:var(--mono);font-size:.65rem;color:var(--ink3);">Rendering diagram…</span>
+    </div>
+    <div class="diag-meta">
+      <div>
+        <div style="font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--plan-b);margin-bottom:2px;">Staging — Plan B</div>
+        <div style="font-family:var(--serif);font-size:1.85rem;color:var(--plan-b);line-height:1;">$679<span style="font-size:.75rem;color:var(--ink3);">/mo</span></div>
+        <div style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);">$0.014 / citizen / month · ✓ in band</div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-top:4px;">
+        <div style="background:rgba(255,255,255,.04);padding:6px 12px;font-family:var(--mono);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">Specifications</div>
+        <div style="padding:0 12px 4px;">
+          <div class="diag-spec-row"><span class="diag-spec-key">SLA</span><span class="diag-spec-val" style="color:var(--plan-b);">Pre-prod · uses shared edge</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">HA Level</span><span class="diag-spec-val" style="color:var(--teal);">Autoscale 1→2 (App Service)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Redundancy</span><span class="diag-spec-val" style="color:var(--amber);">Single region · ZRS storage</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Edge / Firewall</span><span class="diag-spec-val" style="color:var(--plan-b);">Shared in Prod sub ($0)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Monitoring</span><span class="diag-spec-val" style="color:var(--plan-b);">App Insights → central LAW · Defender ×5</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Compute</span><span class="diag-spec-val" style="color:var(--plan-b);">App Service P1v3 ×2 · autoscale 1→2</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Azure SQL DB</span><span class="diag-spec-val" style="color:var(--plan-b);">GP provisioned 2 vCore (warm)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Cosmos DB</span><span class="diag-spec-val" style="color:var(--plan-b);">Autoscale ~1,500 RU/s</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Key Vault</span><span class="diag-spec-val" style="color:var(--plan-b);">Premium (HSM-backed keys)</span></div>
+          <div class="diag-spec-row" style="border-bottom:none;"><span class="diag-spec-key">Compliance</span><span class="diag-spec-val" style="color:var(--plan-b);">UAT · masked / synthetic data</span></div>
+        </div>
+      </div>
+      <div class="diag-analogy">"Two checkout lanes — <em style="color:var(--plan-b);font-style:normal;">if one closes, the other handles the queue.</em> Security cameras now alert the guard when they see something unusual, not just record it."</div>
+      <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:8px 12px;">
+        <div style="font-family:var(--mono);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:var(--plan-b);margin-bottom:4px;">Upgrade triggers from Staging</div>
+        <div style="font-size:.72rem;color:var(--ink2);line-height:1.6;">UAT sign-off · cut over to Production at the chosen sizing (Minimal → Standard → Full)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTION pane -->
+  <div class="env-pane" id="env-pane-prd">
+    <div class="mwrap" id="mwrap-prd">
+      <span style="font-family:var(--mono);font-size:.65rem;color:var(--ink3);">Rendering diagram…</span>
+    </div>
+    <div class="diag-meta">
+      <div>
+        <div style="font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--plan-c);margin-bottom:2px;">Production — Plan C</div>
+        <div style="font-family:var(--serif);font-size:1.85rem;color:var(--plan-c);line-height:1;">$2,433–4,955<span style="font-size:.75rem;color:var(--ink3);">/mo</span></div>
+        <div style="font-family:var(--mono);font-size:.58rem;color:var(--ink3);">$0.05–0.10 / citizen / mo · Minimal → Full</div>
+      </div>
+      <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-top:4px;">
+        <div style="background:rgba(255,255,255,.04);padding:6px 12px;font-family:var(--mono);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);">Specifications</div>
+        <div style="padding:0 12px 4px;">
+          <div class="diag-spec-row"><span class="diag-spec-key">SLA</span><span class="diag-spec-val" style="color:var(--plan-c);">HA from Standard · zone-redundant at Full</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">HA Level</span><span class="diag-spec-val" style="color:var(--teal);">Dual ASE v3 · 1× (Min) → 2× per tier (Std/Full)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Redundancy</span><span class="diag-spec-val" style="color:var(--teal);">LRS (Min) · ZRS (Std) · GRS + DR region (Full)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Edge / Firewall</span><span class="diag-spec-val" style="color:var(--rose);">Azure Firewall Standard 🔒 (shared, all envs)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Monitoring</span><span class="diag-spec-val" style="color:var(--plan-c);">Central LAW + Sentinel (optimized) · Defender</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Compute</span><span class="diag-spec-val" style="color:var(--plan-c);">Frontend + Backend ASE v3 I1v2 (Linux)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Azure SQL DB</span><span class="diag-spec-val" style="color:var(--plan-c);">GP: 6vCore Min · 2vCore Std · 4vCore ZR Full</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">Cosmos DB</span><span class="diag-spec-val" style="color:var(--plan-c);">Serverless (Min) · autoscale (Std/Full)</span></div>
+          <div class="diag-spec-row"><span class="diag-spec-key">APIM / Front Door</span><span class="diag-spec-val" style="color:var(--plan-c);">APIM Basic v2 + FD Std · Std v2 + FD Premium (Full)</span></div>
+          <div class="diag-spec-row" style="border-bottom:none;"><span class="diag-spec-key">Compliance</span><span class="diag-spec-val" style="color:var(--plan-c);">ISO 27001 · GDPR · PCI-DSS (e-Payment)</span></div>
+        </div>
+      </div>
+      <div class="diag-analogy">"Three lanes in <em style="color:var(--plan-c);font-style:normal;">three separate buildings.</em> If an entire building goes dark, the other two continue without a single citizen noticing. A full security team monitors everything, 24/7."</div>
+      <div style="background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.2);border-radius:6px;padding:8px 12px;">
+        <div style="font-family:var(--mono);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:var(--rose);margin-bottom:4px;">ADRs required before committing</div>
+        <div style="font-size:.72rem;color:var(--ink2);line-height:1.6;">ADR: external-LLM removal (supersedes AI tier) · ADR: eID supersedes Entra (ADR-004) · ADR-011 shared-edge isolation · PCI scope for e-Payment</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sfooter">Architecture diagrams show logical data-flow topology · Hub VNet, Bastion, Private DNS, CI/CD pipelines omitted for clarity · All 3 envs share identical LLD component design</div>
+</div>
+</section>
+
+<script>
+// ── nav + scroll dots ──
+var slides=document.querySelectorAll('.slide');
+var navBtns=document.querySelectorAll('nav .navbtn');
+var dots=document.querySelectorAll('.sdot');
+function goSlide(n){slides[n].scrollIntoView({behavior:'smooth'});}
+var planColors=['','','#22c792','#60a5fa','#9b87f5','#9b87f5','','','','','','#f5a623',''];
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting&&e.intersectionRatio>0.4){
+      var i=Array.from(slides).indexOf(e.target);
+      navBtns.forEach(function(b,j){b.classList.toggle('on',j===i);});
+      dots.forEach(function(d,j){
+        d.classList.toggle('on',j===i);
+        if(j===i&&planColors[i])d.style.background=planColors[i];
+        else if(j!==i)d.style.background='';
+      });
+    }
+  });
+},{threshold:0.4});
+slides.forEach(function(s){obs.observe(s);});
+
+// ── layer toggles ──
+function toggleLayer(id){
+  var el=document.getElementById(id);
+  var was=el.classList.contains('open');
+  document.querySelectorAll('.layer').forEach(function(l){l.classList.remove('open');});
+  if(!was)el.classList.add('open');
+}
+
+// ── canvas backgrounds ──
+function initCanvas(id,colors){
+  var canvas=document.getElementById(id);if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W,H,pts=[];
+  function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight||window.innerHeight;}
+  function mkPt(){var c=colors[Math.floor(Math.random()*colors.length)];
+    return{x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.2,
+      r:Math.random()*14+5,alpha:Math.random()*.07+.02,phase:Math.random()*Math.PI*2,sp:Math.random()*.005+.002,c:c};}
+  function hex2r(h,a){var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return'rgba('+r+','+g+','+b+','+a+')';}
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(function(p){
+      p.x+=p.vx;p.y+=p.vy;p.phase+=p.sp;
+      if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;
+      if(p.y<-20)p.y=H+20;if(p.y>H+20)p.y=-20;
+      ctx.save();ctx.globalAlpha=p.alpha+Math.sin(p.phase)*.015;
+      ctx.strokeStyle=hex2r(p.c,p.alpha*4);ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    });
+    requestAnimationFrame(tick);
+  }
+  resize();window.addEventListener('resize',resize);
+  for(var i=0;i<20;i++)pts.push(mkPt());
+  tick();
+}
+window.addEventListener('load',function(){
+  initCanvas('bgc0',['#1d9e75','#6b48c8','#185fa5']);
+  initCanvas('bgc6',['#1d9e75','#185fa5']);
+  showEnvTab('dev',document.querySelector('.env-tab.ta'));
+});
+
+// ── Mermaid architecture diagrams ──
+mermaid.initialize({
+  startOnLoad:false,
+  securityLevel:'loose',
+  theme:'base',
+  themeVariables:{
+    primaryColor:'#0f1b2a',
+    primaryTextColor:'#e8e4dc',
+    primaryBorderColor:'#22c792',
+    lineColor:'#60a5fa',
+    secondaryColor:'#0a1520',
+    background:'#0c1520',
+    clusterBkg:'#0a1420',
+    clusterBorder:'#1e3040',
+    titleColor:'#22c792',
+    edgeLabelBackground:'#0c1520',
+    fontFamily:'DM Mono, monospace',
+    fontSize:'12px',
+    nodeBorder:'#22c792',
+    mainBkg:'#0f1b2a'
+  }
+});
+
+var MDIAGS={
+  dev:[
+    "%%{init:{'theme':'base','themeVariables':{'primaryColor':'#0f1b2a','primaryTextColor':'#e8e4dc','primaryBorderColor':'#22c792','lineColor':'#22c792','background':'#0c1520','clusterBkg':'#0a1420','clusterBorder':'#1a4030','titleColor':'#22c792','edgeLabelBackground':'#0c1520','fontFamily':'DM Mono monospace','fontSize':'12px'}}}%%",
+    "flowchart LR",
+    "  INT([\"Internet\\n50k Citizens\"])",
+    "  FD[\"Front Door Std\\n(shared · Prod sub)\"]",
+    "  AG[\"App Gateway WAF v2\\n(shared · Prod sub)\"]",
+    "  FE[\"App Service\\nP0v3 Frontend\"]",
+    "  AP[\"APIM\\n(shared · Prod sub)\"]",
+    "  BE[\"App Service\\nP0v3 Backend\"]",
+    "  DB1[(\"Azure SQL DB\\nGP serverless\")]",
+    "  DB2[(\"Cosmos DB\\nServerless\")]",
+    "  SB[\"Service Bus\\nStandard\"]",
+    "  RA[\"6x Registry\\nAdapters\"]",
+    "  RG[(\"Civil  Commerce\\nTax  TEATT\\nLand  Permits\")]",
+    "  INT --> FD --> AG --> FE --> AP --> BE",
+    "  BE --> DB1 & DB2 & SB",
+    "  SB --> RA --> RG"
+  ].join('\n'),
+  stg:[
+    "%%{init:{'theme':'base','themeVariables':{'primaryColor':'#0f1b2a','primaryTextColor':'#e8e4dc','primaryBorderColor':'#60a5fa','lineColor':'#60a5fa','background':'#0c1520','clusterBkg':'#0a1420','clusterBorder':'#1a2540','titleColor':'#60a5fa','edgeLabelBackground':'#0c1520','fontFamily':'DM Mono monospace','fontSize':'12px'}}}%%",
+    "flowchart LR",
+    "  INT([\"Internet\\n50k Citizens\"])",
+    "  FD[\"Front Door\\n(shared · Prod sub)\"]",
+    "  AG[\"App Gateway WAF v2\\n(shared · Prod sub)\"]",
+    "  FE[\"App Service\\nP1v3 FE · 1→2\"]",
+    "  AP[\"APIM\\n(shared · Prod sub)\"]",
+    "  BE[\"App Service\\nP1v3 BE · 1→2\"]",
+    "  DB1[(\"Azure SQL DB\\nGP 2 vCore warm\")]",
+    "  DB2[(\"Cosmos DB\\nAutoscale ~1.5k\")]",
+    "  SB[\"Service Bus\\nStandard\"]",
+    "  RA[\"6x Registry\\nAdapters\"]",
+    "  RG[(\"Registries\")]",
+    "  OBS[\"App Insights\\n→ central LAW\"]",
+    "  INT --> FD --> AG --> FE --> AP --> BE",
+    "  BE --> DB1 & DB2 & SB",
+    "  SB --> RA --> RG",
+    "  OBS -.->|telemetry| BE"
+  ].join('\n'),
+  prd:[
+    "%%{init:{'theme':'base','themeVariables':{'primaryColor':'#0f1b2a','primaryTextColor':'#e8e4dc','primaryBorderColor':'#9b87f5','lineColor':'#9b87f5','background':'#0c1520','clusterBkg':'#0a1420','clusterBorder':'#1e1540','titleColor':'#9b87f5','edgeLabelBackground':'#0c1520','fontFamily':'DM Mono monospace','fontSize':'12px'}}}%%",
+    "flowchart LR",
+    "  INT([\"Internet\\n50k+ Citizens\"])",
+    "  FD[\"Front Door\\nStd / Premium\"]",
+    "  AG[\"App Gateway\\nWAF v2\"]",
+    "  FE[\"ASE v3 Frontend\\nI1v2 · 1–2x\"]",
+    "  AP[\"APIM\\nBasic / Std v2\"]",
+    "  BE[\"ASE v3 Backend\\nI1v2 · 1–2x\"]",
+    "  DB1[(\"Azure SQL DB\\nGP 2–6 vCore\\n+ WORM blob\")]",
+    "  DB2[(\"Cosmos DB\\nserverless / autoscale\")]",
+    "  SB[\"Service Bus\\nStandard\"]",
+    "  RA[\"6x Registry\\nAdapters\"]",
+    "  RG[(\"Registries\")]",
+    "  SENT[\"Sentinel\\n(optimized)\"]",
+    "  FW[\"Azure Firewall\\nStandard (shared)\"]",
+    "  INT --> FD --> AG --> FE --> AP --> BE",
+    "  BE --> DB1 & DB2 & SB",
+    "  SB --> RA --> RG",
+    "  SENT -.->|monitors| BE",
+    "  FW -.->|protects| FE"
+  ].join('\n')
+};
+
+function showEnvTab(env,btnEl){
+  if(!btnEl)return;
+  document.querySelectorAll('.env-pane').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.env-tab').forEach(function(b){b.classList.remove('on');});
+  var pane=document.getElementById('env-pane-'+env);
+  if(pane)pane.classList.add('on');
+  btnEl.classList.add('on');
+  var wrap=document.getElementById('mwrap-'+env);
+  if(!wrap||wrap.dataset.rendered)return;
+  mermaid.render('msvg-'+env,MDIAGS[env]).then(function(result){
+    wrap.innerHTML=result.svg;
+    wrap.dataset.rendered='1';
+  }).catch(function(e){
+    wrap.innerHTML='<p style="color:#f87171;font-family:monospace;font-size:.7rem;padding:20px;">Diagram render error — check browser console.</p>';
+    console.error('Mermaid error ('+env+'):',e);
+  });
+}
+</script>
+</body>
+</html>
